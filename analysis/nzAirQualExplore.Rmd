@@ -1,0 +1,264 @@
+---
+params:
+  myTitle: 'Air Quality in New Zealand'
+  mySubTitle: 'Exploring "official" data'
+title: "`r params$myTitle`"
+subtitle: "`r params$mySubTitle`"
+author: "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    collapsed: FALSE
+    toc_float: yes
+    highlight: tango
+    code_folding: hide
+bibliography: '`r path.expand("~/bibliography.bib")`'
+---
+
+```{r knitrSetUp, include=FALSE}
+
+# Set knitr options
+knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what is happening
+                      warning = FALSE,
+                      message = FALSE,
+                      fig_caption = TRUE,
+                      fig_height = 6,        # default, make it bigger to stretch vertical axis
+                      fig_width = 8,
+                      fig_width = 8,         # full width
+                      tidy = TRUE)           # tidy up code in case echo = TRUE
+
+```
+
+
+```{r codeSetup, include=FALSE}
+
+# Load Packages ----
+library(dkUtils)
+
+myLibs <- c("data.table",
+            "ggplot2",
+            "here",
+            "kableExtra",
+            "lubridate",
+            "plotly",
+            "skimr")
+
+dkUtils::loadLibraries(myLibs)              # Load script specific packages
+
+# Project Settings ----
+projLoc <- here::here()
+
+annualThreshold <- 10 # WHO
+dailyThreshold <- 25 # WHO
+
+dPath <- "~/Data/NZ_mfe/airQuality/"
+pm2.5File <- "mfe-pm25-concentrations-200817-CSV/pm25-concentrations-200817.csv"
+pm10File <- "mfe-pm10-concentrations-200617-CSV/pm10-concentrations-200617.csv"
+
+pmURL <- "https://data.mfe.govt.nz/data/category/air/"
+  
+
+# Adjust knitr options if required
+knitr::opts_chunk$set(echo = TRUE)
+
+# Log compile time:
+startTime <- proc.time()
+
+# Functions ----
+makeTilePlot <- function(dt,yvar,byvar){
+  p <- ggplot2::ggplot(dt, aes(x = ba_date, 
+                               y = get(byvar), 
+                               fill = get(yvar)
+                               )
+                       ) +
+    geom_tile() +
+    scale_fill_continuous(low = "green", high = "red") +
+    labs(x = "Date")
+  return(p)
+}
+
+makeLinePlot <- function(dt,yvar,byvar){
+  p <- ggplot2::ggplot(dt, aes(x = ba_date, 
+                               y = get(yvar),
+                               colour = get(byvar)
+                               )
+                       ) +
+    geom_line() +
+    labs(x = "Date")
+  return(p)
+}
+```
+
+# About
+
+## Contributions
+
+Please note that authorship is alphabetical. Contributions are listed below - see [github](https://github.com/CfSOtago/airQual/commits/master) for details and who to blame for what :-).
+
+Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)
+
+## Code
+
+ * https://github.com/CfSOtago/airQual/commits/master
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$myTitle`:`r params$myTitle` , University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public.
+ 
+Report purpose: 
+ 
+ * to explore `official` New Zealand Air Quality data
+
+This work has received funding from the European Union’s Horizon 2020 research and innovation programme under the [Marie Skłodowska-Curie](http://ec.europa.eu/research/mariecurieactions/index_en.htm) grant agreement No 700386 ([SPATIALEC](http://www.energy.soton.ac.uk/tag/spatialec/)).
+
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
+ 
+# Introduction
+
+# PM 10 data
+
+PM 10 data: has more sensors and wider coverage.
+
+Data source: `r pmURL`
+
+Data file: `r pm10File`
+
+```{r loadPM10}
+
+df <- paste0(dPath, pm10File)
+
+pm10dt <- data.table::fread(df)
+pm10dt[, ba_date := lubridate::as_date(date)]
+# the data is daily but there may be gaps?
+pm10dt[, council.site := paste0(council, ".", site)]
+```
+
+Overall there are:
+
+ * `r uniqueN(pm10dt$site)` sites spread over
+ * `r uniqueN(pm10dt$council)` councils
+
+```{r pm10TestData, fig.height = 8, fig.cap="Test data values by date and site"}
+# looks like daily data with gaps
+p <- makeTilePlot(pm10dt, yvar = "pm10", byvar = "council.site")
+p + labs(y = "pm10") + 
+  guides(fill=guide_legend(title="pm10"))
+```
+
+```{r pm10TestDataPlotly, fig.height = 8, fig.cap="Test data values by date and site"}
+# looks like daily data with gaps
+p <- makeLinePlot(pm10dt,yvar = "pm10",byvar = "council.site" )
+p <- p + labs(y = "pm10") +
+  guides(colour=guide_legend(title="pm10"))
+
+plotly::ggplotly(p)
+```
+
+
+# PM 2.5 data
+
+PM 2.5 data: has fewer sensors and less coverage.
+
+Data source: `r pmURL`
+
+Data file: `r pm2.5File`
+
+```{r loadPM2.5}
+
+df <- paste0(dPath, pm2.5File)
+
+pm2.5dt <- data.table::fread(df)
+pm2.5dt[, ba_date := lubridate::as_date(date)]
+# the data is daily but there may be gaps?
+pm2.5dt[, council.site := paste0(council, ".", site)]
+```
+
+Overall there are:
+
+ * `r uniqueN(pm2.5dt$site)` sites spread over
+ * `r uniqueN(pm2.5dt$council)` councils
+ 
+ 
+```{r pm2.5TestData, fig.height = 8, fig.cap="Test data values by date and site"}
+# looks like daily data with gaps
+p <- makeTilePlot(pm2.5dt, yvar = "pm2_5", byvar = "council.site")
+p + labs(y = "pm2_5") + 
+  guides(fill=guide_legend(title="pm2_5"))
+```
+
+```{r pm2.5TestDataPlotly, fig.height = 8, fig.cap="Test data values by date and site"}
+# looks like daily data with gaps
+p <- makeLinePlot(pm2.5dt,yvar = "pm2_5",byvar = "council.site" )
+p <- p + labs(y = "pm2_5") +
+  guides(colour=guide_legend(title="pm2_5"))
+
+plotly::ggplotly(p)
+```
+
+# Statistical Annex
+
+## PM10
+
+```{r skimPm10}
+skimr::skim(pm10dt)
+```
+
+
+```{r pm10Sites}
+# looks like daily data with gaps
+t <- pm10dt[, .(nObs = .N), keyby = .(council, site)]
+
+kableExtra::kable(t, caption = "N obs at sites (PM10)") %>%
+  kable_styling()
+  
+```
+
+## PM2.5
+
+```{r skimPm2.5}
+skimr::skim(pm2.5dt)
+```
+
+
+```{r pm2.5Sites}
+# looks like daily data with gaps
+t <- pm2.5dt[, .(nObs = .N), keyby = .(council, site)]
+
+kableExtra::kable(t, caption = "N obs at sites (PM2.5)") %>%
+  kable_styling()
+  
+```
+
+# Runtime
+
+Report generated using [knitr](https://cran.r-project.org/package=knitr) in [RStudio](http://www.rstudio.com) with `r R.version.string` running on `r R.version$platform` (`r Sys.info()[3]`).
+
+```{r check runtime}
+t <- proc.time() - startTime
+
+elapsed <- t[[3]]
+```
+
+Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
+
+R packages used:
+
+ * data.table - [@data.table]
+ * ggplot2 - [@ggplot2]
+ * here - [@here]
+ * kableExtra - [@kableExtra]
+ * lubridate - [@lubridate]
+ * plotly - [@plotly]
+ * skimr - [@skimr]
+            
+# References
+
