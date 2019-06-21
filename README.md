@@ -1,2 +1,5 @@
-# airQual
-Exploring air quality data
+## airQual: exploration of NZ air quality data
+
+ * [initial analysis](analysis/nzAirQualExplore.html)
+ 
+## YMMV
