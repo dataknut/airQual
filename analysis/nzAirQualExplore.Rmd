@@ -51,8 +51,15 @@ dkUtils::loadLibraries(myLibs)              # Load script specific packages
 # Project Settings ----
 projLoc <- here::here()
 
-annualThreshold <- 10 # WHO
-dailyThreshold <- 25 # WHO
+# https://www.mfe.govt.nz/publications/air/indicator-update-air-quality-particulate-matter-%E2%80%93-pm10/indicator-update-air-quality
+annualPm10Threshold_NZ <- 20 
+dailyPm10Threshold_NZ <- 50 
+
+# https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+annualPm10Threshold_WHO <- 20
+dailyPm10Threshold_WHO <- 50 
+annualPm2.5Threshold_WHO <- 10
+dailyPm2.5Threshold_WHO <- 25 
 
 dPath <- "~/Data/NZ_mfe/airQuality/"
 pm2.5File <- "mfe-pm25-concentrations-200817-CSV/pm25-concentrations-200817.csv"
@@ -124,6 +131,10 @@ This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southam
  
 # Introduction
 
+LAWA seems to hold sub-daily data as it is used to create almost real-time plots & reports - see https://www.lawa.org.nz/explore-data/otago-region/air-quality/alexandra/alexandra-at-5-ventry-street/
+
+It is unclear how we can access this data so for now we have used the MfE data.
+
 # PM 10 data
 
 PM 10 data: has more sensors and wider coverage.
@@ -152,13 +163,38 @@ Overall there are:
 p <- makeTilePlot(pm10dt, yvar = "pm10", byvar = "council.site")
 p + labs(y = "pm10") + 
   guides(fill=guide_legend(title="pm10"))
+
+st <- pm10dt[, .(mean_PM10 = mean(pm10),
+                min_PM10 = min(pm10),
+                max_PM10 = max(pm10),
+                nObs = .N,
+                startDate = min(ba_date),
+                endDate = max(ba_date)),
+             keyby = .(council)]
+
+kableExtra::kable(st, digits = 2,caption = "Summary statstics for PM10 by Council")  %>%
+  kable_styling()
 ```
 
-```{r pm10TestDataPlotly, fig.height = 8, fig.cap="Test data values by date and site"}
+Table \@ref(tab:pm10TestData) suggests there are negative values for some days. _Why?_
+
+Figure \@ref(fig:pm10TestDataPlotly) shows daily values for all sites and indicates those that cross the:
+
+ * WHO PM10 daily mean exposure threshold (`r dailyPm10Threshold_WHO`) - see https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+ * NZ PM10 daily mean exposure threshold (`r dailyPm10Threshold_NZ`) - https://www.mfe.govt.nz/publications/air/indicator-update-air-quality-particulate-matter-%E2%80%93-pm10/indicator-update-air-quality
+
+```{r pm10TestDataPlotly, fig.height = 10, fig.cap="Test data values by date and site"}
 # looks like daily data with gaps
 p <- makeLinePlot(pm10dt,yvar = "pm10",byvar = "council.site" )
-p <- p + labs(y = "pm10") +
-  guides(colour=guide_legend(title="pm10"))
+
+p <- p + labs(y = "pm10", caption = "NZ/WHO threshold shown in red") +
+  geom_hline(yintercept = dailyPm10Threshold_WHO, colour = "red") +
+  geom_hline(yintercept = dailyPm10Threshold_NZ, colour = "red") +
+  guides(colour=guide_legend(title="pm10")) +
+  theme(legend.position = "bottom") +
+  facet_grid(council ~ .)
+
+p
 
 plotly::ggplotly(p)
 ```
@@ -188,18 +224,43 @@ Overall there are:
  * `r uniqueN(pm2.5dt$council)` councils
  
  
-```{r pm2.5TestData, fig.height = 8, fig.cap="Test data values by date and site"}
+```{r pm2_5TestData, fig.height = 8, fig.cap="Test data values by date and site"}
 # looks like daily data with gaps
 p <- makeTilePlot(pm2.5dt, yvar = "pm2_5", byvar = "council.site")
 p + labs(y = "pm2_5") + 
   guides(fill=guide_legend(title="pm2_5"))
+
+st <- pm2.5dt[, .(mean_PM10 = mean(pm2_5),
+                min_PM10 = min(pm2_5),
+                max_PM10 = max(pm2_5),
+                nObs = .N,
+                startDate = min(ba_date),
+                endDate = max(ba_date)),
+             keyby = .(council)]
+
+kableExtra::kable(st, caption = "Summary statstics for PM2.5 by Council") %>%
+  kable_styling()
 ```
 
-```{r pm2.5TestDataPlotly, fig.height = 8, fig.cap="Test data values by date and site"}
+We also seem to have some negative values here...
+
+Figure \@ref(fig:pm2_5TestDataPlotly) shows daily values for all sites and indicates those that cross the:
+
+ * WHO PM2.5 daily mean exposure threshold (`r dailyPm2.5Threshold_WHO`) - see https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+ 
+NZ has yet to set a PM2.5 exposure threshold.
+ 
+```{r pm2_5TestDataPlotly, fig.height = 10, fig.cap="Test data values by date and site"}
 # looks like daily data with gaps
 p <- makeLinePlot(pm2.5dt,yvar = "pm2_5",byvar = "council.site" )
-p <- p + labs(y = "pm2_5") +
-  guides(colour=guide_legend(title="pm2_5"))
+
+p <- p + labs(y = "pm2_5", caption = "WHO threshold shown in red") +
+  geom_hline(yintercept = dailyPm2.5Threshold_WHO, colour = "red") +
+  guides(colour=guide_legend(title="pm2_5")) +
+  theme(legend.position = "bottom") +
+  facet_grid(council ~ .)
+
+p
 
 plotly::ggplotly(p)
 ```
