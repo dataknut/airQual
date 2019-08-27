@@ -158,9 +158,9 @@ Overall there are:
  * `r uniqueN(pm10dt$site)` sites spread over
  * `r uniqueN(pm10dt$council)` councils
 
-```{r pm10TestData, fig.height = 8, fig.cap="Test data values by date and site"}
+```{r pm10TestData, fig.height = 8, fig.cap="Test data values by date and site (Otago RC)"}
 # looks like daily data with gaps
-p <- makeTilePlot(pm10dt, yvar = "pm10", byvar = "council.site")
+p <- makeTilePlot(pm10dt[council.site %like% "ORC"], yvar = "pm10", byvar = "council.site")
 p + labs(y = "pm10") + 
   guides(fill=guide_legend(title="pm10"))
 
@@ -250,15 +250,15 @@ Figure \@ref(fig:pm2_5TestDataPlotly) shows daily values for all sites and indic
  
 NZ has yet to set a PM2.5 exposure threshold.
  
-```{r pm2_5TestDataPlotly, fig.height = 10, fig.cap="Test data values by date and site"}
+```{r pm2_5TestDataPlotly, fig.height = 10, fig.cap="Test data values by date and site for ECAN & ORC"}
 # looks like daily data with gaps
-p <- makeLinePlot(pm2.5dt,yvar = "pm2_5",byvar = "council.site" )
+p <- makeLinePlot(pm2.5dt[council.site %like% "ORC" | council.site %like% "ECAN"],yvar = "pm2_5",byvar = "council.site" )
 
 p <- p + labs(y = "pm2_5", caption = "WHO threshold shown in red") +
   geom_hline(yintercept = dailyPm2.5Threshold_WHO, colour = "red") +
   guides(colour=guide_legend(title="pm2_5")) +
   theme(legend.position = "bottom") +
-  facet_grid(council ~ .)
+  facet_grid(council.site ~ .)
 
 p
 
