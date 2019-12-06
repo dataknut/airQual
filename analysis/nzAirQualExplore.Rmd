@@ -1,20 +1,30 @@
 ---
 params:
-  myTitle: 'Air Quality in New Zealand'
-  mySubTitle: 'Exploring "official" data'
-title: "`r params$myTitle`"
-subtitle: "`r params$mySubTitle`"
-author: "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
-date: 'Last run at: `r Sys.time()`'
+  title: 'Air Quality in New Zealand'
+  subtitle: 'Exploring "official" data'
+  author: 'Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)'
+title: '`r params$title`'
+subtitle: '`r params$subtitle`'
+author: '`r params$author`'
+date: 'Last run at: `r `r Sys.time()`'
 output:
   bookdown::html_document2:
     fig_caption: yes
+    code_folding: hide
     number_sections: yes
     toc: yes
-    collapsed: FALSE
-    toc_float: yes
-    highlight: tango
-    code_folding: hide
+    toc_depth: 2
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    fig_width: 5
+always_allow_html: yes
 bibliography: '`r path.expand("~/bibliography.bib")`'
 ---
 
