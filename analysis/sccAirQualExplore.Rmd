@@ -207,7 +207,7 @@ p
 
 Figure \@ref(fig:plotNoxHourly) shows hourly values for all sites.
 
-```{r plotNoxHurly, fig.cap="Nitric Oxide levels, Southampton (hourly)"}
+```{r plotNoxHourly, fig.cap="Nitric Oxide levels, Southampton (hourly)"}
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = nox, colour = site)) +
   geom_line()
 
@@ -217,7 +217,7 @@ plotly::ggplotly(p) # interactive
 
 ```
 
-```{r plotNoxDaily, fig.cap="Nitric Oxide levels, Southampton (daily mean)"}
+```{r plotNoxDaily, fig.cap="Nitric Oxide levels, Southampton (daily mean - use mouse to hover over data)"}
 dt[, obsDate := lubridate::date(obsDateTime)]
 plotDT <- dt[, .(mean_nox = mean(nox, na.rm = TRUE)),
              keyby = .(obsDate, site)]
@@ -270,7 +270,7 @@ p
 
 Figure \@ref(fig:plotPM10Hourly) shows hourly values for all sites.
 
-```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly)"}
+```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly - use mouse to hover over data)"}
 
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = pm10, colour = site)) +
   geom_line()
@@ -282,7 +282,7 @@ plotly::ggplotly(p) # interactive
 pm10DT <- dt[!is.na(pm10)]
 ```
 
-```{r plotPM10Daily, fig.cap="PM10 levels, Southampton (daily mean, WHO daily threshold shown in red)"}
+```{r plotPM10Daily, fig.cap="PM10 levels, Southampton (daily mean, WHO daily threshold shown in red - use mouse to hover over data)"}
 dt[, obsDate := lubridate::date(obsDateTime)]
 plotDT <- dt[, .(mean_pm10 = mean(pm10, na.rm = TRUE)),
              keyby = .(obsDate, site)]
@@ -292,8 +292,6 @@ p <- ggplot2::ggplot(plotDT, aes(x = obsDate, y = mean_pm10, colour = site)) +
 
 p <- p +  theme(legend.position="bottom") +
   geom_hline(yintercept = dailyPm10Threshold_WHO, colour = "red")
-
-p
 
 plotly::ggplotly(p) # interactive
 
@@ -318,7 +316,7 @@ kableExtra::kable(t, caption = "Summary of pm2_5 data") %>%
   kable_styling()
 ```
 
-Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[pm2_5 < 0])`) negative values. These are shown in \@ref(tab:testNeg25).
+Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[pm2_5 < 0])`) negative values. These are shown in \@ref(tab:testNegpm25).
 
 ```{r testNegpm25}
 t <- head(dt[pm2_5 <0], nrow(dt[pm2_5 < 0]))
@@ -338,7 +336,7 @@ p
 
 Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites.
 
-```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly)"}
+```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly - use mouse to hover over data)"}
 
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = pm2_5, colour = site)) +
   geom_line()
@@ -349,7 +347,7 @@ plotly::ggplotly(p) # interactive
 
 ```
 
-```{r plotPM25Daily, fig.cap="PM2_5 levels, Southampton (daily mean, WHO daily threshold shown in red)"}
+```{r plotPM25Daily, fig.cap="PM2_5 levels, Southampton (daily mean, WHO daily threshold shown in red - use mouse to hover over data)"}
 dt[, obsDate := lubridate::date(obsDateTime)]
 plotDT <- dt[, .(mean_pm2_5 = mean(pm2_5, na.rm = TRUE)),
              keyby = .(obsDate, site)]
@@ -374,7 +372,7 @@ Clearly the mean daily values show less variance (and less extremes) than the ho
 
 # Observations
 
-Something happened on the 27th October 2019 at 20:00. There are spikes on all hourly plots (although this is masked in the daily plots). Could it have been a [cruise ship](https://www.iglucruise.com/oceana/27th-october-2019_c221337) leaving?  S
+Something happened on the 27th October 2019 at 20:00. There are spikes on all hourly plots (although this is masked in the daily plots). Could it have been a [cruise ship](https://www.iglucruise.com/oceana/27th-october-2019_c221337) leaving?
 
 Something else happened on the 2nd December 2019 at 21:00. Was this another ship?
 
