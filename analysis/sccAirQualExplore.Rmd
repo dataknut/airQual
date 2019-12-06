@@ -170,7 +170,9 @@ kableExtra::kable(t, caption = "Mean values per site (NaN indicates not measured
 Table \@ref(tab:getData) gives an indication of the availability of the different measures.
 
 
-# Nitric Oxide
+# Analysis
+
+## Nitric Oxide
 
 
 ```{r noxSummary}
@@ -209,7 +211,7 @@ Figure \@ref(fig:plotNoxHourly) shows hourly values for all sites.
 
 ```{r plotNoxHourly, fig.cap="Nitric Oxide levels, Southampton (hourly)"}
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = nox, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom")
 
@@ -223,7 +225,7 @@ plotDT <- dt[, .(mean_nox = mean(nox, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 p <- ggplot2::ggplot(plotDT, aes(x = obsDate, y = mean_nox, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom")
 
@@ -237,7 +239,7 @@ Figure \@ref(fig:plotNoxDaily) shows daily values for all sites.
 Clearly the mean daily values show less variance (and less extremes) than the hourly data.
 
 
-# PM 10
+## PM 10
 
 PM 10 data: has more sensors and wider coverage than PM2.5
 
@@ -273,7 +275,7 @@ Figure \@ref(fig:plotPM10Hourly) shows hourly values for all sites.
 ```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly - use mouse to hover over data)"}
 
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = pm10, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom")
 
@@ -288,7 +290,7 @@ plotDT <- dt[, .(mean_pm10 = mean(pm10, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 p <- ggplot2::ggplot(plotDT, aes(x = obsDate, y = mean_pm10, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom") +
   geom_hline(yintercept = dailyPm10Threshold_WHO, colour = "red")
@@ -304,7 +306,7 @@ Figure \@ref(fig:plotPM10Daily) shows daily values for all sites and indicates t
 
 Clearly the mean daily values show less variance (and less extremes) than the hourly data.
 
-# PM 2.5
+## PM 2.5
 
 
 ```{r pm25Summary}
@@ -339,7 +341,7 @@ Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites.
 ```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly - use mouse to hover over data)"}
 
 p <- ggplot2::ggplot(dt, aes(x = obsDateTime, y = pm2_5, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom")
 
@@ -353,7 +355,7 @@ plotDT <- dt[, .(mean_pm2_5 = mean(pm2_5, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 p <- ggplot2::ggplot(plotDT, aes(x = obsDate, y = mean_pm2_5, colour = site)) +
-  geom_line()
+  geom_point()
 
 p <- p +  theme(legend.position="bottom") +
   geom_hline(yintercept = dailyPm2.5Threshold_WHO, colour = "red")
