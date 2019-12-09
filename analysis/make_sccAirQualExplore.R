@@ -56,7 +56,7 @@ subtitle <- "Exploring (official) data"
 authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 rmd <- "sccAirQualExplore"
 
-makePlotly <- "_plotly" # '_plotly' -> yes - for plotly versions of charts
+makePlotly <- "" # '_plotly' -> yes - for plotly versions of charts
 
 # set doPlotly
 if(makePlotly == "_plotly"){

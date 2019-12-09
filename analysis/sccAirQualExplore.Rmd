@@ -205,7 +205,7 @@ Table \@ref(tab:nox2Summary) suggests that there may be a few (`r nrow(dt[nox2 <
 
 
 t <- head(dt[nox2 <0], 10)
-kableExtra::kable(t, caption = "Negative nox2 values (first 10)") %>%
+kableExtra::kable(t, caption = "Negative nox2 values (up to first 6)") %>%
   kable_styling()
 
 t <- table(dt[nox < 0]$site)
@@ -305,7 +305,7 @@ Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(dt[pm10 <
 
 ```{r testNegpm10, fig.cap = "Availability and level of PM 10 data over time"}
 t <- head(dt[pm10 <0], nrow(dt[pm10 < 0]))
-kableExtra::kable(t, caption = "Negative PM10 values") %>%
+kableExtra::kable(head(t), caption = "Negative PM10 values - first 6") %>%
   kable_styling()
 
 p <- makeTilePlot(lDT[variable == "pm10"], xVar = "obsDateTime", yVar = "site",
@@ -320,7 +320,7 @@ Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites and sug
 ```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly)"}
 t <- lDT[variable == "pm10" & value > 100][order(-value)]
 
-kableExtra::kable(caption = "Extreme hourly values (PM 10 > 100)", t) %>%
+kableExtra::kable(caption = "10 highest hourly values (PM 10 > 100)", head(t)) %>%
   kable_styling()
 
 p <- makeDotPlot(lDT[variable == "pm10"], 
@@ -344,12 +344,12 @@ pm10DT <- dt[!is.na(pm10)]
 plotDT <- lDT[variable == "pm10", .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
-t <- plotDT[mean > dailyPm10Threshold_WHO][order(-mean)]
+extremePm10Daily <- plotDT[mean > dailyPm10Threshold_WHO][order(-mean)]
 
-kableExtra::kable(caption = paste0("Values greater than WHO threshold (PM 10 > ", 
+kableExtra::kable(caption = paste0("10 highest values greater than WHO threshold (PM 10 > ", 
                                    dailyPm10Threshold_WHO , ")"), 
                   digits = 2,
-                  t) %>%
+                  head(extremePm10Daily, 10)) %>%
   kable_styling()
 
 p <- makeDotPlot(plotDT, 
@@ -393,7 +393,7 @@ Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[pm2_5 
 
 ```{r testNegpm25, fig.cap = "Availability and level of PM 10 data over time"}
 t <- head(dt[pm2_5 <0], nrow(dt[pm2_5 < 0]))
-kableExtra::kable(t, caption = "Negative pm2_5 values") %>%
+kableExtra::kable(head(t), caption = "Negative pm2_5 values - first 6") %>%
   kable_styling()
 
 p <- makeTilePlot(lDT[variable == "pm2_5"], xVar = "obsDateTime", yVar = "site",
@@ -431,12 +431,12 @@ if(doPlotly){
 plotDT <- lDT[variable == "pm2_5", .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
-t <- plotDT[mean > dailyPm2.5Threshold_WHO][order(-mean)]
+extremePm25Daily <- plotDT[mean > dailyPm2.5Threshold_WHO][order(-mean)]
 
-kableExtra::kable(caption = paste0("Top 10 values greater than WHO threshold (PM 2.5 > ", 
+kableExtra::kable(caption = paste0("10 highest values greater than WHO threshold (PM 2.5 > ", 
                                    dailyPm2.5Threshold_WHO , ")"), 
                   digits = 2,
-                  head(t,10)) %>%
+                  head(extremePm25Daily,10)) %>%
   kable_styling()
 
 p <- makeDotPlot(plotDT, 
@@ -468,6 +468,63 @@ Figure \@ref(fig:plotPM25Daily) shows daily values for all sites and indicates t
  * For particulates the trend is more complex with PM10 trending down but PM2.5 trending up. 
      * Something happened on the 27th October 2019 at 20:00. There are spikes on all hourly plots (although this is masked in the daily plots). Could it have been a [cruise ship](https://www.iglucruise.com/oceana/27th-october-2019_c221337) leaving? 
      * Something else happened on the 2nd December 2019 at 21:00. Was this another ship?
+
+# Annex
+
+## Nitrogen Dioxide
+
+```{r skimNox2All}
+
+t <- lDT[variable == "nox2"]
+
+skim(t)
+```
+
+```{r extremeNox2All}
+
+t <- lDT[variable == "nox2" & value > hourlynox2Threshold_WHO][order(-value)]
+
+kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
+                                   hourlynox2Threshold_WHO , ")"), 
+                  t) %>%
+  kable_styling()
+```
+
+
+## PM 10
+
+```{r skimPm10All}
+
+t <- lDT[variable == "pm10"]
+
+skim(t)
+```
+
+```{r extremeNPm10All}
+
+kableExtra::kable(caption = paste0("PM 10 values greater than WHO threshold (NO2 > ", 
+                                   hourlynox2Threshold_WHO , ")"), 
+                  extremePm10Daily) %>%
+  kable_styling()
+```
+
+## PM 2.5
+
+```{r skimPm25All}
+
+t <- lDT[variable == "pm2_5"]
+
+skim(t)
+```
+
+```{r extremePm25All}
+
+kableExtra::kable(caption = paste0("PM 2.5 values greater than WHO threshold (NO2 > ", 
+                                   hourlynox2Threshold_WHO , ")"), 
+                  extremePm25Daily) %>%
+  kable_styling()
+```
+
 
 # Runtime
 
