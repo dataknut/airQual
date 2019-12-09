@@ -1,6 +1,6 @@
 ## airQual: exploration of air quality data
 
-_Best viewed at https://cfsotago.github.io/airQual/ _
+__Best viewed at https://cfsotago.github.io/airQual/__
 
 ### New Zealand
 
