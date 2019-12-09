@@ -1,5 +1,7 @@
 ## airQual: exploration of air quality data
 
+_Best viewed at https://cfsotago.github.io/airQual/ _
+
 ### New Zealand
 
  * Data sources: [https://data.mfe.govt.nz/data/category/air/](https://data.mfe.govt.nz/data/category/air/)
