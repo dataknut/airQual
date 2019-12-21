@@ -23,7 +23,7 @@ Of course, as elsewhere, fossil-fuel based transport is also a major contributor
 
 See https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/
 
-Southampton homes are much less likely to use solid fuel heating. Instead they tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0003&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers are known sources of Nitrogen Dioxide so heating systems may also be a contributor to poort air quality in Southampton alongside fossil-fuel based transport.
+Southampton homes are much less likely to use solid fuel heating. Instead they tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0007&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers are known sources of Nitrogen Dioxide so heating systems may also be a contributor to poort air quality in Southampton alongside fossil-fuel based transport.
 
  * Data sources: [http://southampton.my-air.uk/](http://southampton.my-air.uk/)
  * [Initial exploratory analysis](analysis/sccAirQualExplore.html) - simple plots, fast to load (does not yet use the excellent [openair](http://davidcarslaw.github.io/openair/) R package)
