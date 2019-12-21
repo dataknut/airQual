@@ -59,6 +59,13 @@ knitr::opts_chunk$set(echo = TRUE)
 # Log compile time:
 startTime <- proc.time()
 
+# Parameters ----
+# set xlim for plotly to reduce plot size & load speed
+xlimMinDateTime <- lubridate::as_datetime("2019-01-01 00:00:00")
+xlimMaxDateTime <- lubridate::as_datetime("2020-01-01 00:00:00")
+xlimMinDate <- lubridate::as_date("2019-01-01")
+xlimMaxDate <- lubridate::as_date("2020-01-01")
+
 # Functions ----
 makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
   p <- ggplot2::ggplot(dt, aes(x = get(xVar), 
@@ -157,7 +164,7 @@ kableExtra::kable(t, caption = "Dates data available by site and measure",
 
 # Summarise data
 
-Summarise previously downloaded and processed data...
+Summarise previously downloaded and processed data... Note that this may not be completely up to date.
 
 ```{r summariseData}
 
@@ -233,7 +240,7 @@ p
 t <- lDT[variable == "nox2" & value > 200][order(-value)]
 
 kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
-                                   hourlynox2Threshold_WHO , ")"), 
+                                   hourlyno2Threshold_WHO , ")"), 
                   head(t, 10)) %>%
   kable_styling()
 
@@ -243,11 +250,13 @@ p <- makeDotPlot(lDT[variable == "nox2"],
                  byVar = "site", 
                  yLab = yLab)
 
-p <- p + geom_hline(yintercept = hourlynox2Threshold_WHO) +
+p <- p + geom_hline(yintercept = hourlyno2Threshold_WHO) +
   labs(caption = "Reference line = WHO hourly guideline threshold")
 
+
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited 
 } else {
   p
 }
@@ -273,7 +282,8 @@ p <- p +
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
 } else {
   p
 }
@@ -331,7 +341,8 @@ p <- makeDotPlot(lDT[variable == "pm10"],
 
 
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited # interactive
 } else {
   p
 }
@@ -365,7 +376,8 @@ p <- p +
 
 
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
 } else {
   p
 }
@@ -420,7 +432,8 @@ p <- makeDotPlot(lDT[variable == "pm2_5"],
 
 
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited # interactive
 } else {
   p
 }
@@ -452,7 +465,8 @@ p <- p +
 
 
 if(doPlotly){
-  plotly::ggplotly(p) # interactive
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
 } else {
   p
 }
@@ -482,10 +496,10 @@ skim(t)
 
 ```{r extremeNox2All}
 
-t <- lDT[variable == "nox2" & value > hourlynox2Threshold_WHO][order(-value)]
+t <- lDT[variable == "nox2" & value > hourlyno2Threshold_WHO][order(-value)]
 
 kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
-                                   hourlynox2Threshold_WHO , ")"), 
+                                   hourlyno2Threshold_WHO , ")"), 
                   t) %>%
   kable_styling()
 ```
@@ -503,7 +517,7 @@ skim(t)
 ```{r extremeNPm10All}
 
 kableExtra::kable(caption = paste0("PM 10 values greater than WHO threshold (NO2 > ", 
-                                   hourlynox2Threshold_WHO , ")"), 
+                                   hourlyno2Threshold_WHO , ")"), 
                   extremePm10Daily) %>%
   kable_styling()
 ```
@@ -520,7 +534,7 @@ skim(t)
 ```{r extremePm25All}
 
 kableExtra::kable(caption = paste0("PM 2.5 values greater than WHO threshold (NO2 > ", 
-                                   hourlynox2Threshold_WHO , ")"), 
+                                   hourlyno2Threshold_WHO , ")"), 
                   extremePm25Daily) %>%
   kable_styling()
 ```
