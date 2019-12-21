@@ -2,7 +2,7 @@
 
 __Best viewed at https://cfsotago.github.io/airQual/__
 
-Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health]().
+Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
 
 ### New Zealand
 
@@ -17,7 +17,7 @@ Of course, as elsewhere, fossil-fuel based transport is also a major contributor
  * Data sources: [https://data.mfe.govt.nz/data/category/air/](https://data.mfe.govt.nz/data/category/air/)
  * Data files: mfe-pm10-concentrations-200617-CSV and pm10-concentrations-200617.csv
  * [Initial exploratory analysis](analysis/nzAirQualExplore.html) (does not yet use the excellent [openair](http://davidcarslaw.github.io/openair/) R package)
- * [Focus on Dunedin]()
+ * [Focus on Dunedin](???)
 
 ### Southampton (UK)
 
@@ -28,6 +28,7 @@ Southampton homes are much less likely to use solid fuel heating. Instead they t
  * Data sources: [http://southampton.my-air.uk/](http://southampton.my-air.uk/)
  * [Initial exploratory analysis](analysis/sccAirQualExplore.html) - simple plots, fast to load (does not yet use the excellent [openair](http://davidcarslaw.github.io/openair/) R package)
  * [Initial exploratory analysis](analysis/sccAirQualExplore_plotly.html) - includes interactive plots covering the last 12 months, slow to load but more fun (does not yet use the excellent [openair](http://davidcarslaw.github.io/openair/) R package)
+ * [Further exploratory analysis](analysis/sccAirQualExploreAURN.html) - uses the excellent [openair](http://davidcarslaw.github.io/openair/) R package
  
 ### Comparative
 
