@@ -20,8 +20,8 @@ annualPm10Threshold_WHO <- 20
 dailyPm10Threshold_WHO <- 50 
 annualPm2.5Threshold_WHO <- 10
 dailyPm2.5Threshold_WHO <- 25 
-annualnox2Threshold_WHO <- 40
-hourlynox2Threshold_WHO <- 200 
+annualno2Threshold_WHO <- 40
+hourlyno2Threshold_WHO <- 200 
 
 dataPath <- path.expand("~/Data/SCC/airQual/")
 
@@ -52,11 +52,11 @@ doReport <- function(rmd){
 
 #> yaml ----
 title <- "Air Quality in Southampton (UK)"
-subtitle <- "Exploring (official) data"
+subtitle <- "Exploring the data"
 authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 rmd <- "sccAirQualExplore"
 
-makePlotly <- "" # '_plotly' -> yes - for plotly versions of charts
+makePlotly <- "_plotly" # '_plotly' -> yes - for plotly versions of charts
 
 # set doPlotly
 if(makePlotly == "_plotly"){
