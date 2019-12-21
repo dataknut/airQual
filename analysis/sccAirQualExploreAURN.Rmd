@@ -1,0 +1,371 @@
+---
+params:
+  title: "Air Quality in Southampton (UK)"
+  subtitle: "Exploring the data (using AURN & openair)"
+  authors: "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
+title: '`r params$title`'
+subtitle: '`r params$subtitle`'
+author: '`r params$authors`'
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    fig_width: 5
+always_allow_html: yes
+bibliography: '`r path.expand("~/bibliography.bib")`'
+---
+
+```{r knitrSetUp, include=FALSE}
+
+# Set knitr options
+knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what is happening
+                      warning = FALSE,
+                      message = FALSE,
+                      fig_caption = TRUE,
+                      fig_height = 6,        # default, make it bigger to stretch vertical axis
+                      fig_width = 8,
+                      fig_width = 8,         # full width
+                      tidy = TRUE)           # tidy up code in case echo = TRUE
+
+```
+
+
+```{r codeSetup, include=FALSE}
+
+
+
+# Load Packages ----
+rmdLibs <- c("data.table",
+             "ggplot2",
+            "kableExtra",
+            "plotly",
+            "skimr")
+
+dkUtils::loadLibraries(rmdLibs)
+
+# load last in case of clashes
+require(openair)
+
+# Adjust knitr options if required
+knitr::opts_chunk$set(echo = TRUE)
+
+# Log compile time:
+startTime <- proc.time()
+
+# Parameters ----
+# set xlim for plotly to reduce plot size & load speed
+xlimMinDateTime <- lubridate::as_datetime("2019-01-01 00:00:00")
+xlimMaxDateTime <- lubridate::as_datetime("2020-01-01 00:00:00")
+xlimMinDate <- lubridate::as_date("2019-01-01")
+xlimMaxDate <- lubridate::as_date("2020-01-01")
+
+# https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+annualPm10Threshold_WHO <- 20
+dailyPm10Threshold_WHO <- 50 
+annualPm2.5Threshold_WHO <- 10
+dailyPm2.5Threshold_WHO <- 25 
+annualno2Threshold_WHO <- 40
+hourlyno2Threshold_WHO <- 200 
+
+makePlotly <- "_plotly" # '_plotly' -> yes - for plotly versions of charts
+
+# set doPlotly
+if(makePlotly == "_plotly"){
+  doPlotly <- 1 # for easier if statements
+} else {
+  doPlotly <- 0
+}
+
+# Functions ----
+makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
+  p <- ggplot2::ggplot(dt, aes(x = get(xVar), 
+                               y = get(yVar),
+                               colour = get(byVar),
+                               alpha = 1/100 # https://ggplot2.tidyverse.org/reference/geom_point.html
+                               )
+                       ) +
+    geom_point(size = 1, # small
+               shape = 4 # small cross shape
+               ) +
+    scale_color_discrete(name = eval(byVar)) +
+    guides(alpha = FALSE) + # remove alpha legend 
+    labs(x = "Time",
+         y = eval(yLab)) +  
+    theme(legend.position="bottom") +
+    guides(colour = guide_legend(nrow = 2)) # forces 2 rows to legend
+  return(p)
+}
+
+makeTilePlot <- function(dt, xVar, yVar, fillVar, yLab){
+  p <- ggplot2::ggplot(dt, aes(x = get(xVar), 
+                               y = get(yVar),
+                               fill = get(fillVar)
+                               )
+                       ) +
+    geom_tile() +
+    scale_fill_continuous(low = "green", high = "red", name = "Value") +
+    labs(x = "Time",
+         y = yLab) +  
+    theme(legend.position="bottom")
+  return(p)
+}
+
+```
+
+# About
+
+## Contributions
+
+Please note that authorship is alphabetical. Contributions are listed below - see [github](https://github.com/CfSOtago/airQual/commits/master) for details and who to blame for what :-).
+
+ * Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)
+
+## Code
+
+ * https://github.com/CfSOtago/airQual/commits/master
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$myTitle`: `r params$mySubTitle` , University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+Report purpose: 
+ 
+ * to explore (official) Southampton City Council Air Quality data (http://southampton.my-air.uk) sourced from
+ * to test the [openair](http://davidcarslaw.github.io/openair/) [@openair] package
+
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
+ 
+# Introduction
+
+```{r loadData}
+dfW <- openair::importAURN(
+  site = "SA33",
+  year = 2019,
+  pollutant = "all",
+  hc = FALSE,
+  meta = TRUE,
+  to_narrow = FALSE, # produces long form data yay!
+  verbose = TRUE # for now
+)
+
+# fails. it worked before
+# dfL <- openair::importAURN(
+#   site = "SA33",
+#   year = 2019,
+#   pollutant = "all",
+#   hc = FALSE,
+#   meta = TRUE,
+#   to_narrow = TRUE, # produces long form data yay!
+#   verbose = TRUE
+# )
+
+dtW <- data.table::as.data.table(dfW) # we like data.tables
+
+```
+
+Data downloaded from http://uk-air.defra.gov.uk/openair/R_data/ using `ōpenair::importAURN()`.
+
+Southampton City Council collects various forms of air quality data at the sites shown in \@ref(tab:showSites). WHO publishes [information](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) on the health consequences and "acceptable" exposure levels for each of these.
+
+
+```{r showSites}
+
+lDT <- data.table::melt(dtW,
+                     id.vars=c("site","date","code","latitude", "longitude", "site_type"),
+                     measure.vars = c("no","no2","nox","pm10","nv10","v10",
+                                      "ws","wd"),
+                     value.name = "value" # varies 
+  )
+
+# remove NA
+lDT <- lDT[!is.na(value)]
+
+t <- lDT[,.(from = min(date),
+           to = max(date),
+           nObs = .N), keyby = .(site, variable)]
+
+kableExtra::kable(t, caption = "Dates data available by site and measure",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+# Summarise data
+
+Summarise previously downloaded and processed data... Note that this may not be completely up to date.
+
+```{r summariseData}
+
+skimr::skim(dfW)
+
+```
+
+Table \@ref(tab:summariseData) gives an indication of the availability of the different measures.
+
+
+# Analysis
+
+In this section we present graphical analysis of the previoulsy downloaded data. Note this is just a snapshot of the data available.
+
+## Nitrogen Dioxide
+
+
+```{r no2Summary}
+yLab <- "Nitrogen Dioxide (ug/m3)"
+
+t <- lDT[variable == "no2", .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site)]
+kableExtra::kable(t, caption = "Summary of no2 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:no2Summary) suggests that there may be a few (`r nrow(lDT[variable == "no2" & value < 0])`) negative values. These are summarised in \@ref(tab:testNegNo2) while Figure \@ref(fig:testNegNo2) shows the availability and levels of the pollutant data over time.
+
+```{r testNegNo2, fig.cap="Nitrogen Dioxide data availability and levels over time"}
+
+t <- head(lDT[variable == "no2" & value < 0], 10)
+kableExtra::kable(t, caption = "Negative no2 values (up to first 6)") %>%
+  kable_styling()
+
+t <- table(lDT[variable == "no2" & value < 0, .(site)])
+kableExtra::kable(t, caption = "Negative no2 values (count by site)") %>%
+  kable_styling()
+
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(lDT[variable == "no2"], xVar = "date", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+
+
+
+```{r plotNo2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly)"}
+# p <- ggplot2::ggplot(dt, aes(x = obsDateTime, 
+#                              y = nox2,
+#                              colour = site,
+#                              alpha = 0.1)) +
+#   geom_point(shape=4, size = 1)
+
+t <- lDT[variable == "no2" & value > 200][order(-value)]
+
+kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
+                                   hourlyno2Threshold_WHO , ")"), 
+                  head(t, 10)) %>%
+  kable_styling()
+
+p <- makeDotPlot(lDT[variable == "no2"], 
+                 xVar = "date", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p + geom_hline(yintercept = hourlyno2Threshold_WHO) +
+  labs(caption = "Reference line = WHO hourly guideline threshold")
+
+
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited 
+} else {
+  p
+}
+
+```
+
+Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites. In the study period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached WHO guidelines. The worst 10 cases are shown in Table \@ref(tab:plotNo2Hourly).
+
+```{r plotNo2Daily, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean"}
+lDT[, obsDate := lubridate::date(date)]
+
+plotDT <- lDT[variable == "no2", .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  geom_smooth() + # add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
+} else {
+  p
+}
+
+```
+
+
+Figure \@ref(fig:plotNo2Daily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
+
+Clearly the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+
+## openair tests
+
+Wind rose
+
+```{r windRose, fig.cap="Wind rose for Southampton A33, 2019"}
+openair::windRose(dfW)
+```
+
+
+Pollution rose
+
+```{r pollutionRose, fig.cap="Pollution rose for Southampton A33, 2019, hourly data"}
+openair::pollutionRose(dfW, pollutant = "no2")
+```
+
+We get a slightly higher % of high measures when the wind is from the SE?
+
+# Runtime
+
+Report generated using [knitr](https://cran.r-project.org/package=knitr) in [RStudio](http://www.rstudio.com) with `r R.version.string` running on `r R.version$platform` (`r Sys.info()[3]`).
+
+```{r check runtime}
+t <- proc.time() - startTime
+
+elapsed <- t[[3]]
+```
+
+Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
+
+R packages used:
+
+ * data.table - [@data.table]
+ * ggplot2 - [@ggplot2]
+ * here - [@here]
+ * kableExtra - [@kableExtra]
+ * lubridate - [@lubridate]
+ * openair - [@openair]
+ * plotly - [@plotly]
+ * skimr - [@skimr]
+            
+# References
+
