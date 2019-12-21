@@ -14,7 +14,8 @@ library(plotly)
 
 baseUrl <- "http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data"
 dataPath <- path.expand("~/Data/SCC/airQual/")
-years <- c("2016", "2017", "2018", "2019")
+#"2016", "2017", "2018", 
+years <- c("2019")
 
 refreshData <- function(years){
   sites <- c("0", "1", "2", "3", "4", "5")
