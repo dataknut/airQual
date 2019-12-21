@@ -6,7 +6,7 @@ params:
 title: '`r params$title`'
 subtitle: '`r params$subtitle`'
 author: '`r params$author`'
-date: 'Last run at: `r `r Sys.time()`'
+date: 'Last run at: `r Sys.time()`'
 output:
   bookdown::html_document2:
     fig_caption: yes
@@ -125,7 +125,7 @@ Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)
 
 If you wish to refer to any of the material from this report please cite as:
 
- * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$myTitle`: `r params$mySubTitle` , University of Southampton: Southampton, UK.
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , University of Southampton: Southampton, UK.
 
 Report circulation:
 
