@@ -62,9 +62,11 @@ startTime <- proc.time()
 # Parameters ----
 # set xlim for plotly to reduce plot size & load speed
 xlimMinDateTime <- lubridate::as_datetime("2019-01-01 00:00:00")
-xlimMaxDateTime <- lubridate::as_datetime("2020-01-01 00:00:00")
+xlimMaxDateTime <- lubridate::as_datetime("2020-12-01 00:00:00")
 xlimMinDate <- lubridate::as_date("2019-01-01")
-xlimMaxDate <- lubridate::as_date("2020-01-01")
+xlimMaxDate <- lubridate::as_date("2020-12-01")
+
+oneYearAgo <- lubridate::as_datetime(now() - (12*30*24*60*60)) # ish
 
 # Functions ----
 makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
@@ -132,32 +134,31 @@ This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southam
  
 # Introduction
 
-```{r loadData}
-
-# done in makefile
-```
-
 Data downloaded from http://southampton.my-air.uk. See also https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/.
 
 Southampton City Council collects various forms of air quality data at the sites shown in \@ref(tab:showSites). WHO publishes [information](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) on the health consequences and "acceptable" exposure levels for each of these.
 
 
-```{r showSites}
+```{r makeLongData}
 
-lDT <- data.table::melt(dt,
-                     id.vars=c("site","obsDateTime"),
-                     measure.vars = c("co","nox","nox2","noxes","oz","pm10","pm2_5","so2"),
+lDT <- data.table::melt(origDataDT,
+                     id.vars=c("site","dateTimeUTC"),
+                     measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
                      value.name = "value" # varies 
   )
 
-# remove NA
-lDT <- lDT[!is.na(value)]
+lDT[, obsDate := lubridate::date(dateTimeUTC)]
 
-t <- lDT[,.(from = min(obsDateTime),
-           to = max(obsDateTime),
+# remove NA
+#lDT <- lDT[!is.na(value)]
+```
+
+```{r showSites}
+t <- lDT[!is.na(value),.(from = min(dateTimeUTC),
+           to = max(dateTimeUTC),
            nObs = .N), keyby = .(site, variable)]
 
-kableExtra::kable(t, caption = "Dates data available by site and measure",
+kableExtra::kable(t, caption = "Dates data != NA available by site and measure",
                   digits = 2) %>%
   kable_styling()
 ```
@@ -167,18 +168,8 @@ kableExtra::kable(t, caption = "Dates data available by site and measure",
 Summarise previously downloaded and processed data... Note that this may not be completely up to date.
 
 ```{r summariseData}
-
-skimr::skim(dt)
-
-t <- dt[, .("co: Carbon Monoxide, mg/m3" = mean(co, na.rm = TRUE),
-            "nox = Nitric Oxide, ug/m3" = mean(nox, na.rm = TRUE),
-            "nox2 = Nitrogen Dioxide, ug/m3" = mean(nox2, na.rm = TRUE),
-            "noxes = Oxides of Nitrogen, ug/m3" = mean(noxes, na.rm = TRUE),
-            "oz = ozone, ug/m3" = mean(oz, na.rm = TRUE),
-            "pm10, ug/m3" = mean(pm10, na.rm = TRUE),
-            "pm2_5, ug/m3" = mean(pm2_5, na.rm = TRUE),
-            "so2 = Sulphur Dioxide, ug/m3" = mean(so2, na.rm = TRUE)
-            ), keyby = .(site)]
+t <- lDT[, .(mean = mean(value, na.rm = TRUE)
+            ), keyby = .(site, variable)]
 
 kableExtra::kable(t, caption = "Mean values per site (NaN indicates not measured)") %>%
   kable_styling()
@@ -195,87 +186,48 @@ In this section we present graphical analysis of the previoulsy downloaded data.
 ## Nitrogen Dioxide
 
 
-```{r nox2Summary}
+```{r No2Summary}
 yLab <- "Nitrogen Dioxide (ug/m3)"
-
-t <- lDT[variable == "nox2", .(mean = mean(value, na.rm = TRUE),
+dt <- lDT[variable == "no2"]
+t <- dt[, .(mean = mean(value, na.rm = TRUE),
             sd = sd(value, na.rm = TRUE),
             min = min(value, na.rm = TRUE),
             max = max(value, na.rm = TRUE)), keyby = .(site)]
-kableExtra::kable(t, caption = "Summary of nox2 data") %>%
+kableExtra::kable(t, caption = "Summary of NO2 data") %>%
   kable_styling()
 ```
 
-Table \@ref(tab:nox2Summary) suggests that there may be a few (`r nrow(dt[nox2 < 0])`) negative values. These are summarised in \@ref(tab:testNegnox2) while Figure \@ref(fig:testNegnox2) shows the availability and levels of the pollutant data over time.
+Table \@ref(tab:No2Summary) suggests that there may be a few (`r nrow(dt[value < 0])`) negative values. These are summarised in \@ref(tab:testNegNo2) while Figure \@ref(fig:testNegNo2) shows the availability and levels of the pollutant data over time.
 
-```{r testNegnox2, fig.cap="Nitrogen Dioxide data availability and levels over time"}
-
-
-t <- head(dt[nox2 <0], 10)
-kableExtra::kable(t, caption = "Negative nox2 values (up to first 6)") %>%
+```{r testNegNo2, fig.cap="Nitrogen Dioxide data availability and levels over time"}
+t <- head(dt[value <0], 10)
+kableExtra::kable(t, caption = "Negative NO2 values (up to first 10)") %>%
   kable_styling()
 
-t <- table(dt[nox < 0]$site)
-kableExtra::kable(t, caption = "Negative nox2 values (count by site)") %>%
+t <- table(dt[value < 0]$site)
+kableExtra::kable(t, caption = "Negative NO2 values (count by site)") %>%
   kable_styling()
 
 # dt,xvar, yvar,fillVar, yLab
-p <- makeTilePlot(lDT[variable == "nox2"], xVar = "obsDateTime", yVar = "site",
+p <- makeTilePlot(dt, xVar = "dateTimeUTC", yVar = "site",
                   fillVar = "value",
                   yLab = yLab)
 
 p
 ```
 
+Figure \@ref(fig:plotNo2Daily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
 
-
-
-```{r plotNox2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly)"}
-# p <- ggplot2::ggplot(dt, aes(x = obsDateTime, 
-#                              y = nox2,
-#                              colour = site,
-#                              alpha = 0.1)) +
-#   geom_point(shape=4, size = 1)
-
-t <- lDT[variable == "nox2" & value > 200][order(-value)]
-
-kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
-                                   hourlyno2Threshold_WHO , ")"), 
-                  head(t, 10)) %>%
-  kable_styling()
-
-p <- makeDotPlot(lDT[variable == "nox2"], 
-                 xVar = "obsDateTime", 
-                 yVar = "value", 
-                 byVar = "site", 
-                 yLab = yLab)
-
-p <- p + geom_hline(yintercept = hourlyno2Threshold_WHO) +
-  labs(caption = "Reference line = WHO hourly guideline threshold")
-
-
-if(doPlotly){
-  p
-  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited 
-} else {
-  p
-}
-
-```
-
-Figure \@ref(fig:plotNox2Hourly) shows hourly values for all sites. In the study period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached WHO guidelines. The worst 10 cases are shown in Table \@ref(tab:plotNox2Hourly).
-
-```{r plotNox2Daily, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean"}
-lDT[, obsDate := lubridate::date(obsDateTime)]
-
-plotDT <- lDT[variable == "nox2", .(mean = mean(value, na.rm = TRUE)),
+```{r plotNo2Daily, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean"}
+plotDT <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 p <- makeDotPlot(plotDT, 
                  xVar = "obsDate", 
                  yVar = "mean", 
                  byVar = "site", 
-                 yLab = yLab)
+                 yLab = paste0("Mean daily ", yLab)
+                 )
 
 p <- p +
   geom_smooth() + # add smoothed line
@@ -291,9 +243,40 @@ if(doPlotly){
 ```
 
 
-Figure \@ref(fig:plotNox2Daily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
+```{r plotNo2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, last 12 months)"}
 
-Clearly the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+dt <- dt[dateTimeUTC > oneYearAgo]
+
+t <- dt[value > hourlyNo2Threshold_WHO][order(-value)]
+
+kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
+                                   hourlyNo2Threshold_WHO , ", last 12 months)"), 
+                  head(t, 10)) %>%
+  kable_styling()
+
+
+p <- makeDotPlot(dt[!is.na(value)], 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p + geom_hline(yintercept = hourlyNo2Threshold_WHO) +
+  labs(caption = "Reference line = WHO hourly threshold")
+
+
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited 
+} else {
+  p
+}
+
+```
+
+Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
+
+Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
 
 
 ## PM 10
@@ -302,57 +285,33 @@ PM 10 data: has more sensors and wider coverage than PM2.5
 
 ```{r pm10Summary}
 yLab <- "PM 10 (ug/m3)"
+dt <- lDT[variable == "pm10"]
 
-t <- dt[, .(mean = mean(pm10, na.rm = TRUE),
-            sd = sd(pm10, na.rm = TRUE),
-            min = min(pm10, na.rm = TRUE),
-            max = max(pm10, na.rm = TRUE)), keyby = .(site)]
+t <- dt[, .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site)]
 kableExtra::kable(t, caption = "Summary of pm10 data") %>%
   kable_styling()
 ```
 
-Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(dt[pm10 < 0])`) negative values. These are shown in \@ref(tab:testNegpm10) while \@ref(fig:testNegpm10) shows data availability and PM 10 levels over time at each site.
+Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(dt[value < 0])`) negative values. These are shown in \@ref(tab:testNegPM10) while \@ref(fig:testNegPM10) shows data availability and PM 10 levels over time at each site.
 
-```{r testNegpm10, fig.cap = "Availability and level of PM 10 data over time"}
-t <- head(dt[pm10 <0], nrow(dt[pm10 < 0]))
+```{r testNegPM10, fig.cap = "Availability and level of PM 10 data over time"}
+t <- head(dt[value <0], nrow(dt[value < 0]))
 kableExtra::kable(head(t), caption = "Negative PM10 values - first 6") %>%
   kable_styling()
 
-p <- makeTilePlot(lDT[variable == "pm10"], xVar = "obsDateTime", yVar = "site",
+p <- makeTilePlot(lDT[variable == "pm10"], xVar = "dateTimeUTC", yVar = "site",
                   fillVar = "value",
                   yLab = yLab)
 
 p
 ```
 
-Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites and suggests there may be an extreme outlier (see Table \@ref(fig:plotPM10Hourly)).
+```{r plotPM10Daily, fig.cap="PM10 levels, Southampton (daily mean)"}
 
-```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly)"}
-t <- lDT[variable == "pm10" & value > 100][order(-value)]
-
-kableExtra::kable(caption = "10 highest hourly values (PM 10 > 100)", head(t)) %>%
-  kable_styling()
-
-p <- makeDotPlot(lDT[variable == "pm10"], 
-                 xVar = "obsDateTime", 
-                 yVar = "value", 
-                 byVar = "site", 
-                 yLab = yLab)
-
-
-if(doPlotly){
-  p
-  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited # interactive
-} else {
-  p
-}
-
-pm10DT <- dt[!is.na(pm10)]
-```
-
-```{r plotPM10Daily, fig.cap="PM10 levels, Southampton (daily mean, WHO daily threshold shown in red - use mouse to hover over data)"}
-
-plotDT <- lDT[variable == "pm10", .(mean = mean(value, na.rm = TRUE)),
+plotDT <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 extremePm10Daily <- plotDT[mean > dailyPm10Threshold_WHO][order(-mean)]
@@ -367,7 +326,8 @@ p <- makeDotPlot(plotDT,
                  xVar = "obsDate", 
                  yVar = "mean", 
                  byVar = "site", 
-                 yLab = yLab)
+                 yLab = paste0("Mean daily ", yLab)
+                 )
 
 p <- p + 
   geom_hline(yintercept = dailyPm10Threshold_WHO) +
@@ -387,45 +347,17 @@ if(doPlotly){
 
 Figure \@ref(fig:plotPM10Daily) shows daily values for all sites and indicates the `r nrow(t)` that cross the [WHO PM10 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm10Threshold_WHO`) - see Table \@ref(tab:plotPM10Daily).
 
-## PM 2.5
+Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over the last 12 months and suggests there may be outliers (see Table \@ref(fig:plotPM10Hourly)).
 
+```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly, last 12 months)"}
+dt <- dt[dateTimeUTC > oneYearAgo]
+t <- dt[value > 100][order(-value)]
 
-```{r pm25Summary}
-yLab <- "PM 2.5 (ug/m3)"
-
-t <- dt[, .(mean = mean(pm2_5, na.rm = TRUE),
-            sd = sd(pm2_5, na.rm = TRUE),
-            min = min(pm2_5, na.rm = TRUE),
-            max = max(pm2_5, na.rm = TRUE)), keyby = .(site)]
-kableExtra::kable(t, caption = "Summary of pm2_5 data") %>%
-  kable_styling()
-```
-
-Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[pm2_5 < 0])`) negative values. These are shown in \@ref(tab:testNegpm25) while \@ref(fig:testNegpm25) shows data availability and PM 2.5 levels over time at each site.
-
-```{r testNegpm25, fig.cap = "Availability and level of PM 10 data over time"}
-t <- head(dt[pm2_5 <0], nrow(dt[pm2_5 < 0]))
-kableExtra::kable(head(t), caption = "Negative pm2_5 values - first 6") %>%
+kableExtra::kable(caption = "10 highest hourly values (PM 10 > 100)", head(t)) %>%
   kable_styling()
 
-p <- makeTilePlot(lDT[variable == "pm2_5"], xVar = "obsDateTime", yVar = "site",
-                  fillVar = "value",
-                  yLab = yLab)
-
-p
-```
-
-Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites.
-
-```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly - use mouse to hover over data)"}
-
-t <- lDT[variable == "pm2_5" & value > 200][order(-value)]
-
-kableExtra::kable(caption = "Extreme hourly values (PM 2.5 > 50)", t) %>%
-  kable_styling()
-
-p <- makeDotPlot(lDT[variable == "pm2_5"], 
-                 xVar = "obsDateTime", 
+p <- makeDotPlot(dt[!is.na(value)], 
+                 xVar = "dateTimeUTC", 
                  yVar = "value", 
                  byVar = "site", 
                  yLab = yLab)
@@ -440,8 +372,38 @@ if(doPlotly){
 
 ```
 
+
+
+## PM 2.5
+
+
+```{r pm25Summary}
+yLab <- "PM 2.5 (ug/m3)"
+dt <- lDT[variable == "pm2_5"]
+t <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site)]
+kableExtra::kable(t, caption = "Summary of pm2_5 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[value < 0])`) negative values. These are shown in \@ref(tab:testNegPM25) while \@ref(fig:testNegPM25) shows data availability and PM 2.5 levels over time at each site.
+
+```{r testNegPM25, fig.cap = "Availability and level of PM 10 data over time"}
+t <- head(dt[value <0], nrow(dt[value < 0]))
+kableExtra::kable(head(t), caption = "Negative pm2_5 values - first 6") %>%
+  kable_styling()
+
+p <- makeTilePlot(dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
 ```{r plotPM25Daily, fig.cap="PM2_5 levels, Southampton (daily mean)"}
-plotDT <- lDT[variable == "pm2_5", .(mean = mean(value, na.rm = TRUE)),
+plotDT <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
 extremePm25Daily <- plotDT[mean > dailyPm2.5Threshold_WHO][order(-mean)]
@@ -456,12 +418,13 @@ p <- makeDotPlot(plotDT,
                  xVar = "obsDate", 
                  yVar = "mean", 
                  byVar = "site", 
-                 yLab = yLab)
+                 yLab = paste0("Mean daily ", yLab)
+                 )
 
 p <- p + 
   geom_hline(yintercept = dailyPm2.5Threshold_WHO) +
   geom_smooth() + #add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO threshold")
 
 
 if(doPlotly){
@@ -474,32 +437,76 @@ if(doPlotly){
 ```
 
 
-Figure \@ref(fig:plotPM25Daily) shows daily values for all sites and indicates that the [WHO PM2_5 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm2.5Threshold_WHO`) was breached on `r nrow(t)` days. The 10 worst cases are shown in Table \@ref(tab:plotPM25Daily).
+Figure \@ref(fig:plotPM25Daily) shows daily values for all sites and indicates that the [WHO PM2_5 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm2.5Threshold_WHO`) was breached on `r nrow(extremePm25Daily)` days. The 10 worst cases are shown in Table \@ref(tab:plotPM25Daily).
+
+Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for thge last 12 months.
+
+```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly, last 12 months)"}
+
+dt <- dt[dateTimeUTC > oneYearAgo]
+t <- dt[value > 50][order(-value)]
+
+kableExtra::kable(caption = "Extreme hourly values (PM 2.5 > 50, last 12 months)", t) %>%
+  kable_styling()
+
+p <- makeDotPlot(dt[!is.na(value)], 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited # interactive
+} else {
+  p
+}
+
+```
+
+
 
 # Observations
 
+ * Why are there large data holes? (see tile plots)
  * Nitorgen Dioxide levels appear to be trending downwards
- * For particulates the trend is more complex with PM10 trending down but PM2.5 trending up. 
-     * Something happened on the 27th October 2019 at 20:00. There are spikes on all hourly plots (although this is masked in the daily plots). Could it have been a [cruise ship](https://www.iglucruise.com/oceana/27th-october-2019_c221337) leaving? 
+ * For particulates the trend is more complex and the trends for PM10 and PM2.5 differ. 
+     * Something happened on the 27th October 2019 at 20:00. There are spikes on all hourly PM plots (although this is masked in the daily plots). Could it have been a [cruise ship](https://www.iglucruise.com/oceana/27th-october-2019_c221337) leaving? 
      * Something else happened on the 2nd December 2019 at 21:00. Was this another ship?
 
 # Annex
 
-## Nitrogen Dioxide
+## Original data
 
-```{r skimNox2All}
+```{r skimOrig}
 
-t <- lDT[variable == "nox2"]
-
-skim(t)
+skimr::skim(origDataDT)
 ```
 
-```{r extremeNox2All}
+## Long form of original data
 
-t <- lDT[variable == "nox2" & value > hourlyno2Threshold_WHO][order(-value)]
+```{r skimOrigLong}
+
+skimr::skim(lDT)
+```
+
+
+## Nitrogen Dioxide
+
+```{r skimNo2All}
+
+t <- lDT[variable == "no2"]
+
+skimr::skim(t)
+```
+
+```{r extremeNo2All}
+
+t <- lDT[variable == "no2" & value > hourlyNo2Threshold_WHO][order(-value)]
 
 kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
-                                   hourlyno2Threshold_WHO , ")"), 
+                                   hourlyNo2Threshold_WHO , ")"), 
                   t) %>%
   kable_styling()
 ```
@@ -511,13 +518,13 @@ kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ",
 
 t <- lDT[variable == "pm10"]
 
-skim(t)
+skimr::skim(t)
 ```
 
 ```{r extremeNPm10All}
 
 kableExtra::kable(caption = paste0("PM 10 values greater than WHO threshold (NO2 > ", 
-                                   hourlyno2Threshold_WHO , ")"), 
+                                   hourlyNo2Threshold_WHO , ")"), 
                   extremePm10Daily) %>%
   kable_styling()
 ```
@@ -528,13 +535,13 @@ kableExtra::kable(caption = paste0("PM 10 values greater than WHO threshold (NO2
 
 t <- lDT[variable == "pm2_5"]
 
-skim(t)
+skimr::skim(t)
 ```
 
 ```{r extremePm25All}
 
 kableExtra::kable(caption = paste0("PM 2.5 values greater than WHO threshold (NO2 > ", 
-                                   hourlyno2Threshold_WHO , ")"), 
+                                   hourlyNo2Threshold_WHO , ")"), 
                   extremePm25Daily) %>%
   kable_styling()
 ```
