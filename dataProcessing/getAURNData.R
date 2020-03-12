@@ -7,13 +7,11 @@ library(data.table)
 library(dkUtils)
 library(skimr)
 library(lubridate)
-library(ggplot2)
-library(plotly)
 
 # sites in AURN speak:
 # UKA00613 : A33 https://uk-air.defra.gov.uk/networks/site-info?site_id=SA33&view=View
 
-dataPath <- path.expand("~/Data/SCC/airQual/")
+dataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 #"2016", "2017", "2018", 
 years <- c("2019")
 
