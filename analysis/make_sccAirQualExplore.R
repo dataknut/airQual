@@ -50,7 +50,7 @@ doReport <- function(rmd){
 
 
 
-# > run report ----
+# > settings ----
 
 #> yaml ----
 title <- "Air Quality in Southampton (UK)"
@@ -60,12 +60,12 @@ rmd <- "sccAirQualExplore" # use raw SCC data not AURN
 
 makePlotly <- "" # '_plotly' -> yes - for plotly versions of charts
 
-# set doPlotly
+# > set doPlotly ----
 if(makePlotly == "_plotly"){
   doPlotly <- 1 # for easier if statements
 } else {
   doPlotly <- 0
 }
 
-
+# > run report ----
 doReport(rmd) # uncomment to run automatically
