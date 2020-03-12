@@ -15,25 +15,26 @@ dkUtils::loadLibraries(localLibs)              # Load script specific packages
 # Project Settings ----
 projLoc <- here::here()
 
+# set these here so they are global across any report run (or rmd version)
 # https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
 annualPm10Threshold_WHO <- 20
 dailyPm10Threshold_WHO <- 50 
 annualPm2.5Threshold_WHO <- 10
 dailyPm2.5Threshold_WHO <- 25 
-annualno2Threshold_WHO <- 40
-hourlyno2Threshold_WHO <- 200 
+annualNo2Threshold_WHO <- 40
+hourlyNo2Threshold_WHO <- 200 
 
 dataPath <- path.expand("~/Data/SCC/airQual/")
 
-# fone files
-files <- list.files(paste0(dataPath, "/processed/"), pattern = "*.gz", full.names = TRUE)
+# data files
+files <- list.files(paste0(dataPath, "direct/processed/"), pattern = "*.gz", full.names = TRUE)
 # load as a list
 l <- lapply(files, data.table::fread)
-dt <- rbindlist(l, fill = TRUE) # rbind them
-dt[, obsDateTime := lubridate::ymd_hm(MeasurementDateGMT)]
+origDataDT <- rbindlist(l, fill = TRUE) # rbind them
 
-dt$MeasurementDateGMT <- NULL # not needed
-
+origDataDT$MeasurementDateGMT <- NULL # not needed
+origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
+l <- NULL # not needed
 
 # Functions ----
 doReport <- function(rmd){
@@ -42,7 +43,8 @@ doReport <- function(rmd){
                     params = list(title = title,
                                   subtitle = subtitle,
                                   authors = authors),
-                    output_file = paste0(projLoc,"/analysis/", rmd, makePlotly, ".html")
+                    output_file = paste0(projLoc,"/docs/", # for easy github pages management
+                                         rmd, makePlotly, ".html")
   )
 }
 
@@ -54,7 +56,7 @@ doReport <- function(rmd){
 title <- "Air Quality in Southampton (UK)"
 subtitle <- "Exploring the data"
 authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
-rmd <- "sccAirQualExplore"
+rmd <- "sccAirQualExplore" # use raw SCC data not AURN
 
 makePlotly <- "" # '_plotly' -> yes - for plotly versions of charts
 
