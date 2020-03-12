@@ -329,12 +329,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
 
-if(doPlotly){
-  p
-  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
-} else {
-  p
-}
+
+plotly::ggplotly(p) # interactive
 
 nDaysOverThreshold <- uniqueN(extremePm10Daily$obsDate)
 nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
