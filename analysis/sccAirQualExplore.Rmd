@@ -66,7 +66,7 @@ xlimMaxDateTime <- lubridate::as_datetime("2020-12-01 00:00:00")
 xlimMinDate <- lubridate::as_date("2019-01-01")
 xlimMaxDate <- lubridate::as_date("2020-12-01")
 
-oneYearAgo <- lubridate::as_datetime(now() - (12*30*24*60*60)) # ish
+oneYearAgo <- lubridate::as_datetime(now() - (365*24*60*60))
 
 # Functions ----
 makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
@@ -265,12 +265,7 @@ p <- p + geom_hline(yintercept = hourlyNo2Threshold_WHO) +
   labs(caption = "Reference line = WHO hourly threshold")
 
 
-if(doPlotly){
-  p
-  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited 
-} else {
-  p
-}
+plotly::ggplotly(p) # for interaction
 
 ```
 
@@ -341,12 +336,12 @@ if(doPlotly){
   p
 }
 
+nDaysOverThreshold <- uniqueN(extremePm10Daily$obsDate)
+nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
 ```
 
 
-Figure \@ref(fig:plotPM10Daily) shows daily values for all sites and indicates the `r nrow(t)` that cross the [WHO PM10 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm10Threshold_WHO`) - see Table \@ref(tab:plotPM10Daily).
-
-Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over the last 12 months and suggests there may be outliers (see Table \@ref(fig:plotPM10Hourly)).
+Figure \@ref(fig:plotPM10Daily) shows daily values for all sites across the entire dataset and indicates the `r nDaysOverThreshold` days (`r round(100*nDaysOverThreshold/nDays,1)`%) that breached the [WHO PM10 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm10Threshold_WHO`) - see Table \@ref(tab:plotPM10Daily).
 
 ```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly, last 12 months)"}
 dt <- dt[dateTimeUTC > oneYearAgo]
@@ -361,7 +356,7 @@ p <- makeDotPlot(dt[!is.na(value)],
                  byVar = "site", 
                  yLab = yLab)
 
-p + labs(caption = "NB: There is no WHO PM10 hourly threshold")
+p <- p + labs(caption = "NB: There is no WHO PM10 hourly threshold")
 
 if(doPlotly){
   p
@@ -372,7 +367,7 @@ if(doPlotly){
 
 ```
 
-
+Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over the last 12 months and suggests there may be outliers (see Table \@ref(tab:plotPM10Hourly)).
 
 ## PM 2.5
 
@@ -388,7 +383,7 @@ kableExtra::kable(t, caption = "Summary of pm2_5 data") %>%
   kable_styling()
 ```
 
-Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[value < 0])`) negative values. These are shown in \@ref(tab:testNegPM25) while \@ref(fig:testNegPM25) shows data availability and PM 2.5 levels over time at each site.
+Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(dt[value < 0])`) negative values. These are shown in Table \@ref(tab:testNegPM25) while Figure \@ref(fig:testNegPM25) shows data availability and PM 2.5 levels over time at each site.
 
 ```{r testNegPM25, fig.cap = "Availability and level of PM 10 data over time"}
 t <- head(dt[value <0], nrow(dt[value < 0]))
@@ -408,10 +403,10 @@ plotDT <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
 
 extremePm25Daily <- plotDT[mean > dailyPm2.5Threshold_WHO][order(-mean)]
 
-kableExtra::kable(caption = paste0("10 highest values greater than WHO threshold (PM 2.5 > ", 
+kableExtra::kable(caption = paste0("6 highest values greater than WHO threshold (PM 2.5 > ", 
                                    dailyPm2.5Threshold_WHO , ")"), 
                   digits = 2,
-                  head(extremePm25Daily,10)) %>%
+                  head(extremePm25Daily)) %>%
   kable_styling()
 
 p <- makeDotPlot(plotDT, 
@@ -434,19 +429,19 @@ if(doPlotly){
   p
 }
 
+nDaysOverThreshold <- uniqueN(extremePm25Daily$obsDate)
+nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
 ```
 
 
-Figure \@ref(fig:plotPM25Daily) shows daily values for all sites and indicates that the [WHO PM2_5 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm2.5Threshold_WHO`) was breached on `r nrow(extremePm25Daily)` days. The 10 worst cases are shown in Table \@ref(tab:plotPM25Daily).
-
-Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for thge last 12 months.
+Figure \@ref(fig:plotPM25Daily) shows daily values for all sites across the dataset and indicates that the [WHO PM2_5 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r dailyPm2.5Threshold_WHO`) was breached on `r nDaysOverThreshold` days (`r round(100*nDaysOverThreshold/nDays,1)` %). The 6 worst cases are shown in Table \@ref(tab:plotPM25Daily).
 
 ```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly, last 12 months)"}
 
 dt <- dt[dateTimeUTC > oneYearAgo]
 t <- dt[value > 50][order(-value)]
 
-kableExtra::kable(caption = "Extreme hourly values (PM 2.5 > 50, last 12 months)", t) %>%
+kableExtra::kable(caption = "Extreme hourly values (PM 2.5 > 50, last 12 months, worst 6)", head(t)) %>%
   kable_styling()
 
 p <- makeDotPlot(dt[!is.na(value)], 
@@ -455,18 +450,13 @@ p <- makeDotPlot(dt[!is.na(value)],
                  byVar = "site", 
                  yLab = yLab)
 
-p + labs(caption = "NB: There is no WHO PM2.5 hourly threshold")
+p <- p + labs(caption = "NB: There is no WHO PM2.5 hourly threshold")
 
-if(doPlotly){
-  p
-  plotly::ggplotly(p + xlim(xlimMinDateTime, xlimMaxDateTime)) # interactive, xlimited # interactive
-} else {
-  p
-}
+plotly::ggplotly(p) # for interaction
 
 ```
 
-
+Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for the last 12 months while Table \@ref(tab:plotPM25Hourly) reports the 6 worst hours.
 
 # Observations
 
