@@ -332,8 +332,7 @@ p <- makeDotPlot(plotDT,
 p <- p + 
   geom_hline(yintercept = dailyPm10Threshold_WHO) +
   geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
-
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
 
 if(doPlotly){
   p
@@ -362,6 +361,7 @@ p <- makeDotPlot(dt[!is.na(value)],
                  byVar = "site", 
                  yLab = yLab)
 
+p + labs(caption = "NB: There is no WHO PM10 hourly threshold")
 
 if(doPlotly){
   p
@@ -424,7 +424,7 @@ p <- makeDotPlot(plotDT,
 p <- p + 
   geom_hline(yintercept = dailyPm2.5Threshold_WHO) +
   geom_smooth() + #add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO threshold")
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO daily PM2.5 threshold")
 
 
 if(doPlotly){
@@ -455,6 +455,7 @@ p <- makeDotPlot(dt[!is.na(value)],
                  byVar = "site", 
                  yLab = yLab)
 
+p + labs(caption = "NB: There is no WHO PM2.5 hourly threshold")
 
 if(doPlotly){
   p
