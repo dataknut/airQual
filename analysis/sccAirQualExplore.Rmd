@@ -61,10 +61,10 @@ startTime <- proc.time()
 
 # Parameters ----
 # set xlim for plotly to reduce plot size & load speed
-xlimMinDateTime <- lubridate::as_datetime("2019-01-01 00:00:00")
-xlimMaxDateTime <- lubridate::as_datetime("2020-12-01 00:00:00")
-xlimMinDate <- lubridate::as_date("2019-01-01")
-xlimMaxDate <- lubridate::as_date("2020-12-01")
+xlimMinDateTime <- lubridate::as_datetime("2019-10-01 00:00:00")
+xlimMaxDateTime <- lubridate::as_datetime("2020-04-01 00:00:00")
+xlimMinDate <- lubridate::as_date("2019-10-01")
+xlimMaxDate <- lubridate::as_date("2020-04-01")
 
 oneYearAgo <- lubridate::as_datetime(now() - (365*24*60*60))
 
@@ -274,6 +274,98 @@ Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 1
 Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
 
 
+## Sulphour Dioxide
+
+
+```{r So2Summary}
+yLab <- "Sulphour Dioxide (ug/m3)"
+dt <- lDT[variable == "so2"]
+t <- dt[, .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site)]
+kableExtra::kable(t, caption = "Summary of SO2 data") %>%
+  kable_styling()
+```
+
+Figure \@ref(fig:testNegSo2) shows the availability and levels of the pollutant data over time.
+
+```{r testNegSo2, fig.cap="Sulphour Dioxide data availability and levels over time"}
+t <- head(dt[value <0], 10)
+kableExtra::kable(t, caption = "Negative SO2 values (up to first 10)") %>%
+  kable_styling()
+
+t <- table(dt[value < 0]$site)
+kableExtra::kable(t, caption = "Negative SO2 values (count by site)") %>%
+  kable_styling()
+
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+Figure \@ref(fig:plotSo2Daily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
+
+```{r plotSo2Daily, fig.cap="Sulphour Dioxide levels, Southampton (daily mean"}
+plotDT <- dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+# dailySo2Threshold_WHO
+
+p <- p + geom_hline(yintercept = dailySo2Threshold_WHO) +
+  geom_smooth() + # add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
+} else {
+  p
+}
+
+```
+
+
+```{r plotSo2Hourly, fig.cap="Sulphour Dioxide levels, Southampton (hourly, last 12 months)"}
+
+dt <- dt[dateTimeUTC > oneYearAgo]
+
+t <- dt[value > hourlyNo2Threshold_WHO][order(-value)]
+
+kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
+                                   hourlyNo2Threshold_WHO , ", last 12 months)"), 
+                  head(t, 10)) %>%
+  kable_styling()
+
+
+p <- makeDotPlot(dt[!is.na(value)], 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p + geom_hline(yintercept = hourlyNo2Threshold_WHO) +
+  labs(caption = "Reference line = WHO hourly threshold")
+
+
+plotly::ggplotly(p) # for interaction
+
+```
+
+Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
+
+Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+
 ## PM 10
 
 PM 10 data: has more sensors and wider coverage than PM2.5
@@ -329,8 +421,12 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
 
-
-plotly::ggplotly(p) # interactive
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
+} else {
+  p
+}
 
 nDaysOverThreshold <- uniqueN(extremePm10Daily$obsDate)
 nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
@@ -448,7 +544,12 @@ p <- makeDotPlot(dt[!is.na(value)],
 
 p <- p + labs(caption = "NB: There is no WHO PM2.5 hourly threshold")
 
-plotly::ggplotly(p) # for interaction
+if(doPlotly){
+  p
+  plotly::ggplotly(p + xlim(xlimMinDate, xlimMaxDate)) # interactive, xlimited # interactive
+} else {
+  p
+}
 
 ```
 
