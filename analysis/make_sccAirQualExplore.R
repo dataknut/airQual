@@ -17,12 +17,31 @@ projLoc <- here::here()
 
 # set these here so they are global across any report run (or rmd version)
 # https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+# Guideline levels for each pollutant (µg/m3 ):
+# PM2.5 	1 year 	10
+#         24 h (99th percentile) 	25
+# PM10 	1 year 	20
+#       24 h (99th percentile) 	50
+# Ozone, O3 	8 h, daily maximum 	100
+# Nitrogen dioxide, NO2 	1 yr 	40
+#                   1 h 	200
+# Sulfur dioxide, SO2 	24 h 	20
+#                 10 min 	500
+
+
+annualPm2.5Threshold_WHO <- 10 # mean
+dailyPm2.5Threshold_WHO <- 25 
+
 annualPm10Threshold_WHO <- 20
 dailyPm10Threshold_WHO <- 50 
-annualPm2.5Threshold_WHO <- 10
-dailyPm2.5Threshold_WHO <- 25 
+
+dailyO3Threshold_WHO <- 100
+
 annualNo2Threshold_WHO <- 40
 hourlyNo2Threshold_WHO <- 200 
+
+dailySo2Threshold_WHO <- 20
+tenMSo2Threshold_WHO <- 500
 
 dataPath <- path.expand("~/Data/SCC/airQual/")
 
@@ -36,6 +55,7 @@ origDataDT$MeasurementDateGMT <- NULL # not needed
 origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
 l <- NULL # not needed
 
+
 # Functions ----
 doReport <- function(rmd){
   rmdFile <- paste0(projLoc, "/analysis/", rmd, ".Rmd")
@@ -44,7 +64,7 @@ doReport <- function(rmd){
                                   subtitle = subtitle,
                                   authors = authors),
                     output_file = paste0(projLoc,"/docs/", # for easy github pages management
-                                         rmd, makePlotly, ".html")
+                                         rmd, makePlotly, subtitle, ".html")
   )
 }
 
@@ -54,9 +74,12 @@ doReport <- function(rmd){
 
 #> yaml ----
 title <- "Air Quality in Southampton (UK)"
-subtitle <- "Exploring the data"
+subtitle <- "Exploring the data for 2020"
 authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 rmd <- "sccAirQualExplore" # use raw SCC data not AURN
+
+# filter the data here
+origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
 
 makePlotly <- "" # '_plotly' -> yes - for plotly versions of charts
 
