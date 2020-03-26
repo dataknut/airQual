@@ -1,4 +1,8 @@
-# in which we download Southampton hourly air quality data
+# in which we download Southampton hourly air quality data from:
+
+# http://southampton.my-air.uk
+
+# (NOT from AURN)
 
 library(curl)
 library(data.table)
@@ -32,7 +36,7 @@ locs$es3 <- "Eastleigh - The Point (Centre)"
 baseUrl <- "http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data"
 dataPath <- path.expand("~/Data/SCC/airQual/direct/")
 #"2016", "2017", "2018", 
-years <- c("2016", "2017", "2018", "2019","2020")
+years <- c("2020")
 
 refreshData <- function(years){
   sites <- c("0", "1", "2", "3", "4", "5")
