@@ -4,6 +4,7 @@
 
 # (NOT from AURN)
 
+# Libraries ----
 library(curl)
 library(data.table)
 library(dkUtils)
@@ -12,6 +13,14 @@ library(lubridate)
 
 # format: http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data&SiteCode=SH1&StartDate=2019-11-29&EndDate=2019-12-07&download=1
 # Getting http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data&SiteCode=SH05&StartDate=2019-01-01&EndDate=2019-12-31&download=1
+
+# Parameters ----
+
+# > years ----
+#"2016", "2017", "2018", 
+years <- c("2020")
+
+# > locations ----
 locs <- list()
 # sites: SH0 - 5 <- Southampton
 # SH0 A33 Roadside AURN
@@ -35,9 +44,9 @@ locs$es3 <- "Eastleigh - The Point (Centre)"
 
 baseUrl <- "http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data"
 dataPath <- path.expand("~/Data/SCC/airQual/direct/")
-#"2016", "2017", "2018", 
-years <- c("2020")
 
+
+# Functions ----
 refreshData <- function(years){
   sites <- c("0", "1", "2", "3", "4", "5")
   for(y in years){
@@ -149,4 +158,6 @@ min(dt[!is.na(no), dateTimeUTC])
 max(dt[!is.na(no), dateTimeUTC])
 # how long ago last data?
 now() - max(dt[!is.na(no), dateTimeUTC])
+
+# done ----
         
