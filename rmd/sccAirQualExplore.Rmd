@@ -180,7 +180,7 @@ WHO publishes [information](https://www.who.int/news-room/fact-sheets/detail/amb
 
 > Data health warning
 
-The data used here is _not_ cleaned or tested for measurement error. If you want that data you need to go to https://uk-air.defra.gov.uk/data-plot?site_id=SOUT&days=7
+The southampton.my-air.uk data used is _not_ cleaned or tested for measurement error. The AURN from https://uk-air.defra.gov.uk/ has been ratified if it is mroe than 6 months old.
 
 ```{r showSites}
 sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)]
