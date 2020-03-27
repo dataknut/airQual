@@ -2,47 +2,47 @@
 # or any others we choose using
 # importAURN from http://davidcarslaw.github.io/openair/
 
+# Libraries ----
 library(openair)
 library(data.table)
 library(dkUtils)
 library(skimr)
 library(lubridate)
 
+# Parameters ----
 # sites in AURN speak:
 # UKA00613 : A33 https://uk-air.defra.gov.uk/networks/site-info?site_id=SA33&view=View
+# SOUT https://uk-air.defra.gov.uk/networks/site-info?site_id=SOUT&view=View
 
+# Data cookery: https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf
 dataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 #"2016", "2017", "2018", 
-years <- c("2019")
+years <- c("2018", "2019", "2020")
+sites <- c("SA33", "SOUT")
 
-dfW <- openair::importAURN(
-  site = "SA33",
-  year = 2019,
-  pollutant = "all",
-  hc = FALSE,
-  meta = TRUE,
-  to_narrow = FALSE, # produces long form data yay!
-  verbose = TRUE # for now
-)
+# get data ----
+allDT <- data.table::data.table()
 
-dfL <- openair::importAURN(
-  site = "SA33",
-  year = 2019,
-  pollutant = "all",
-  hc = FALSE,
-  meta = TRUE,
-  to_narrow = TRUE, # produces long form data yay!
-  verbose = FALSE
-)
-
-dtL <- data.table::as.data.table(dfL) # we like data.tables
-
-openair::windRose(dfW) # only works with wide form
-openair::pollutionRose(dfW, pollutant = "no") # only works with wide form
-openair::calendarPlot(dfW, pollutant = "no")
+for(y in years){
+  for(s in sites){
+    df <- openair::importAURN(
+      site = s,
+      year = y,
+      pollutant = "all",
+      hc = FALSE,
+      to_narrow = TRUE, # produces long form data yay!
+      verbose = TRUE
+    )
+    dt <- data.table::as.data.table(df)
+    allDT <- rbind(dt, allDT)
+  }
+}
 
 
-# ws (wind speed)
-# wd (wind direction) 
+pf <- paste0(dataPath,"processed/AURN_SSC_sites_hourlyAirQual_processed.csv")
+data.table::fwrite(allDT, file = pf)
+dkUtils::gzipIt(pf)
 
-metaDT <- data.table::as.data.table(openair::importMeta())
+skimr::skim(allDT)
+
+# done ----
