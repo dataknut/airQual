@@ -115,7 +115,7 @@ addLockdownDate <- function(p){
              y = yMax * 0.4, angle = 10,size = myTextSize,
              label = "UK covid lockdown", hjust = 0)
   p <- p + annotate("rect", xmin = lubridate::as_date("2020-03-24"),
-             xmax = lubridate::as_date("2020-05-01"), 
+             xmax = lubridate::as_date("2020-04-10"), 
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, 
              fill = vLineCol, 
@@ -129,7 +129,7 @@ addLockdownDateTime <- function(p){
              y = yMax * 0.4, angle = 10,size = myTextSize,
              label = "UK covid lockdown", hjust = 0)
   p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-24 00:00:00"),
-             xmax = lubridate::as_datetime("2020-05-01 00:00:00"), 
+             xmax = lubridate::as_datetime("2020-04-10 00:00:00"), 
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, 
              fill = vLineCol, 
@@ -281,6 +281,25 @@ p
 
 ```
 
+```{r plotNo2DailyRecent, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean, recent)"}
+plotDT <- no2dt[!is.na(value) & obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p +
+  geom_smooth() + # add smoothed line
+  guides(colour = guide_legend(ncol=2)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+addLockdownDate(p)
+
+```
 
 ```{r plotNo2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, last 12 months)"}
 
@@ -403,6 +422,27 @@ p
 
 ```
 
+```{r plotSo2DailyRecent, fig.cap="Sulphour Dioxide levels, Southampton (daily mean, recent)"}
+plotDT <- so2dt[!is.na(value) & obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+# dailySo2Threshold_WHO
+
+p <- p + geom_hline(yintercept = myParams$dailySo2Threshold_WHO) +
+  geom_smooth() + # add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+addLockdownDate(p)
+
+```
+
 There is no hourly SO2 threshold - it is 10 minutes (`r myParams$tenMSo2Threshold_WHO`).
 
 ```{r plotSo2Hourly, fig.cap="Sulphour Dioxide levels, Southampton (hourly, last 12 months)"}
@@ -518,6 +558,39 @@ nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
 
 Figure \@ref(fig:plotPM10Daily) shows daily values for all sites across the entire dataset and indicates the `r nDaysOverThreshold` days (`r round(100*nDaysOverThreshold/nDays,1)`%) that breached the [WHO PM10 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r myParams$dailyPm10Threshold_WHO`) - see Table \@ref(tab:plotPM10Daily).
 
+```{r plot03Dailyrecent, fig.cap="03 levels, Southampton (daily mean, recent)"}
+
+plotDT <- o3dt[!is.na(value) & 
+                 obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+extreme03Daily <- plotDT[mean > myParams$dailyO3Threshold_WHO][order(-mean)]
+
+kableExtra::kable(caption = paste0("10 highest values greater than WHO threshold (PM 10 > ", 
+                                   myParams$dailyO3Threshold_WHO , ")"), 
+                  digits = 2,
+                  head(extreme03Daily, 10)) %>%
+  kable_styling()
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p + 
+  geom_hline(yintercept = myParams$dailyO3Threshold_WHO) +
+  geom_smooth() + # add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
+
+addLockdownDate(p)
+
+nDaysOverThreshold <- uniqueN(extreme03Daily$obsDate)
+nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
+```
+
+
 ```{r ploto3Hourly, fig.cap="o3 levels, Southampton (hourly, last 12 months)"}
 o31yeardt <- o3dt[dateTimeUTC > myParams$oneYearAgo]
 t <- o31yeardt[value > 100][order(-value)]
@@ -629,6 +702,38 @@ nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
 
 Figure \@ref(fig:plotPM10Daily) shows daily values for all sites across the entire dataset and indicates the `r nDaysOverThreshold` days (`r round(100*nDaysOverThreshold/nDays,1)`%) that breached the [WHO PM10 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r myParams$dailyPm10Threshold_WHO`) - see Table \@ref(tab:plotPM10Daily).
 
+```{r plotPM10DailyRecent, fig.cap="PM10 levels, Southampton (daily mean, recent)"}
+
+plotDT <- pm10dt[!is.na(value) & 
+                   obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+extremePm10Daily <- plotDT[mean > myParams$dailyPm10Threshold_WHO][order(-mean)]
+
+kableExtra::kable(caption = paste0("10 highest values greater than WHO threshold (PM 10 > ", myParams$dailyPm10Threshold_WHO , ")"), 
+                  digits = 2,
+                  head(extremePm10Daily, 10)) %>%
+  kable_styling()
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p + 
+  geom_hline(yintercept = myParams$dailyPm10Threshold_WHO) +
+  geom_smooth() + # add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
+
+addLockdownDate(p)
+
+nDaysOverThreshold <- uniqueN(extremePm10Daily$obsDate)
+nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
+```
+
+
 ```{r plotPM10Hourly, fig.cap="PM10 levels, Southampton (hourly, last 12 months)"}
 pm101yeardt <- pm10dt[dateTimeUTC > myParams$oneYearAgo]
 t <- pm101yeardt[value > 100][order(-value)]
@@ -701,7 +806,7 @@ p <- makeTilePlot(pm25dt, xVar = "dateTimeUTC", yVar = "site",
 p
 ```
 
-```{r plotPM25Daily, fig.cap="PM2_5 levels, Southampton (daily mean)"}
+```{r plotPM25Daily, fig.cap="PM2.5 levels, Southampton (daily mean)"}
 plotDT <- pm25dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
@@ -733,6 +838,38 @@ nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
 
 
 Figure \@ref(fig:plotPM25Daily) shows daily values for all sites across the dataset and indicates that the [WHO PM2_5 daily mean exposure threshold](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) (`r myParams$dailyPm2.5Threshold_WHO`) was breached on `r nDaysOverThreshold` days (`r round(100*nDaysOverThreshold/nDays,1)` %). The 6 worst cases are shown in Table \@ref(tab:plotPM25Daily).
+
+```{r plotPM25Dailyrecent, fig.cap="PM2.5 levels, Southampton (daily mean, recent)"}
+plotDT <- pm25dt[!is.na(value) & 
+                   obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+extremePm25Daily <- plotDT[mean > myParams$dailyPm2.5Threshold_WHO][order(-mean)]
+
+kableExtra::kable(caption = paste0("6 highest values greater than WHO threshold (PM 2.5 > ", 
+                                   myParams$dailyPm2.5Threshold_WHO , ")"), 
+                  digits = 2,
+                  head(extremePm25Daily)) %>%
+  kable_styling()
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p + 
+  geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) +
+  geom_smooth() + #add smoothed line
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO daily PM2.5 threshold")
+
+addLockdownDate(p)
+
+nDaysOverThreshold <- uniqueN(extremePm25Daily$obsDate)
+nDays <- uniqueN(plotDT$obsDate) # need to count days not site-days
+```
+
 
 ```{r plotPM25Hourly, fig.cap="PM2_5 levels, Southampton (hourly, last 12 months)"}
 
