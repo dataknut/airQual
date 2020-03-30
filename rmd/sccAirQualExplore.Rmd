@@ -941,14 +941,14 @@ skimr::skim(aurnDT)
 
 ```{r skimNo2All}
 
-t <- lDT[pollutant == "no2"]
+t <- sotonAirDT[pollutant == "no2"]
 
 skimr::skim(t)
 ```
 
 ```{r extremeNo2All}
 
-t <- lDT[pollutant == "no2" & value > myParams$hourlyNo2Threshold_WHO][order(-value)]
+t <- sotonAirDT[pollutant == "no2" & value > myParams$hourlyNo2Threshold_WHO][order(-value)]
 
 kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
                                    myParams$hourlyNo2Threshold_WHO , ")"), 
@@ -961,7 +961,7 @@ kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ",
 
 ```{r skimPm10All}
 
-t <- lDT[pollutant == "pm10"]
+t <- sotonAirDT[pollutant == "pm10"]
 
 skimr::skim(t)
 ```
@@ -978,7 +978,7 @@ kableExtra::kable(caption = paste0("PM 10 values greater than WHO threshold (NO2
 
 ```{r skimPm25All}
 
-t <- lDT[pollutant == "pm2_5"]
+t <- sotonAirDT[pollutant == "pm2.5"]
 
 skimr::skim(t)
 ```
