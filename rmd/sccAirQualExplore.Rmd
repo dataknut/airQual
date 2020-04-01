@@ -80,7 +80,6 @@ myParams$myAlpha <- 0.1
 myParams$vLineAlpha <- 0.4
 myParams$vLineCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 myParams$myTextSize <- 4
-myParams$myTextSize <- 0.05
 
 # Functions ----
 makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
@@ -120,11 +119,11 @@ addLockdownDate <- function(p){
   # assumes p has x = obsDate
   p <- p + annotate("text", x = myParams$lockDownStartDate,
              y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-             label = "UK covid lockdown", hjust = 0)
+             label = "UK covid lockdown to date", hjust = 0)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
              xmax = myParams$lockDownEndDate, 
              ymin = yMin, ymax = yMax, 
-             alpha = myParams$myTextSize, 
+             alpha = myParams$myAlpha, 
              fill = myParams$vLineCol, 
              colour = myParams$vLineCol)
   return(p)
@@ -134,11 +133,11 @@ addLockdownDateTime <- function(p){
   # assumes p has x = obsDateTime
   p <- p + annotate("text", x = myParams$lockDownStartDateTime,
              y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-             label = "UK covid lockdown", hjust = 0)
+             label = "UK covid lockdown to date", hjust = 0)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
              xmax = myParams$lockDownEndDateTime, 
              ymin = yMin, ymax = yMax, 
-             alpha = myParams$myTextSize, 
+             alpha = myParams$myAlpha, 
              fill = myParams$vLineCol, 
              colour = myParams$vLineCol) 
     
@@ -354,7 +353,7 @@ Clearly there are winter peaks, the mean daily values show less variance (and le
 
 Figure \@ref(fig:no2recent) shows the most recent hourly data.
 
-```{r no2recent, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent"}
+```{r no2recent, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent)"}
 recentDT <- no2dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -498,7 +497,7 @@ addLockdownDateTime(p)
 
 Figure \@ref(fig:so2recent) shows the most recent hourly data.
 
-```{r so2recent, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent"}
+```{r so2recent, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent)"}
 recentDT <- so2dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -653,7 +652,7 @@ Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over th
 
 Figure \@ref(fig:03recent) shows the most recent hourly data.
 
-```{r 03recent, fig.cap="03 levels, Southampton (hourly, recent"}
+```{r 03recent, fig.cap="03 levels, Southampton (hourly, recent)"}
 recentDT <- o3dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -805,7 +804,7 @@ Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over th
 
 Figure \@ref(fig:pm10recent) shows the most recent hourly data.
 
-```{r pm10recent, fig.cap="PM10 levels, Southampton (hourly, recent"}
+```{r pm10recent, fig.cap="PM10 levels, Southampton (hourly, recent)"}
 recentDT <- pm10dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -950,7 +949,7 @@ Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for the last 
 
 Figure \@ref(fig:pm25recent) shows the most recent hourly data.
 
-```{r pm25recent, fig.cap="PM2.5 levels, Southampton (hourly, recent"}
+```{r pm25recent, fig.cap="PM2.5 levels, Southampton (hourly, recent)"}
 recentDT <- pm25dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
