@@ -221,7 +221,7 @@ Table \@ref(tab:summariseData) gives an indication of the availability of the di
 
 In this section we present graphical analysis of the previoulsy downloaded data. Note this is just a snapshot of the data available.
 
-## Nitrogen Dioxide
+## Nitrogen Dioxide (no2)
 
 From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
 
@@ -268,6 +268,155 @@ p
 Figure \@ref(fig:plotNo2Daily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
 
 ```{r plotNo2Daily, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean"}
+plotDT <- no2dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p +
+  geom_smooth() + # add smoothed line
+  guides(colour = guide_legend(ncol=2)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+yMax <- max(plotDT$mean)
+yMin <- min(plotDT$mean)
+addLockdownDate(p)
+
+```
+
+```{r plotNo2DailyRecent, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean, recent)"}
+
+plotDT <- no2dt[!is.na(value) & 
+                  obsDate > myParams$recentCutDate, 
+                .(mean = mean(value, na.rm = TRUE)),
+             keyby = .(obsDate, site)]
+
+
+p <- makeDotPlot(plotDT, 
+                 xVar = "obsDate", 
+                 yVar = "mean", 
+                 byVar = "site", 
+                 yLab = paste0("Mean daily ", yLab)
+                 )
+
+p <- p +
+  #geom_smooth(se = FALSE) + # add smoothed line
+  guides(colour = guide_legend(ncol=2)) +
+  scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
+
+yMax <- max(plotDT$mean)
+yMin <- min(plotDT$mean)
+addLockdownDate(p)
+
+```
+
+```{r plotNo2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, last 12 months)"}
+
+dt <- no2dt[!is.na(value) & dateTimeUTC > myParams$oneYearAgo]
+
+t <- dt[value > myParams$hourlyNo2Threshold_WHO][order(-value)]
+
+kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ", 
+                                   myParams$hourlyNo2Threshold_WHO , ", last 12 months)"), 
+                  head(t, 10)) %>%
+  kable_styling()
+
+
+p <- makeDotPlot(dt, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) +
+  labs(caption = "Reference line = WHO hourly threshold")
+
+
+p <- p +
+  geom_smooth() + # add smoothed line
+  guides(colour = guide_legend(ncol=2)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+
+yMax <- max(dt$value)
+yMin <- min(dt$value)
+addLockdownDateTime(p)
+```
+
+Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r myParams$hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
+
+Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+
+Figure \@ref(fig:no2recent) shows the most recent hourly data.
+
+```{r no2recent, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent)"}
+recentDT <- no2dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
+
+# final plot - adds annotations
+yMin <- min(recentDT$value)
+yMax <- max(recentDT$value)
+
+addLockdownDateTime(p)
+
+```
+
+> Beware seasonal trends and weather effects
+
+
+
+## Oxides of Nitrogen (nox)
+
+```{r NoxSummary}
+yLab <- "Oxides of Nitrogen (ug/m3)"
+noxdt <- sotonAirDT[pollutant == "nox"]
+t <- noxdt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE),
+            minDate = min(obsDate),
+            maxDate = max(obsDate)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of NOx data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:NoxSummary) suggests that there may be a few (`r nrow(noxdt[value < 0])`) negative values. These are summarised in \@ref(tab:testNegNox) while Figure \@ref(fig:testNegNox) shows the availability and levels of the pollutant data over time.
+
+```{r testNegNox, fig.cap="Oxides of nitrogen data availability and levels over time"}
+t <- head(noxdt[value <0], 10)
+kableExtra::kable(t, caption = "Negative NOx values (up to first 10)") %>%
+  kable_styling()
+
+t <- table(noxdt[value < 0]$site)
+kableExtra::kable(t, caption = "Negative NOx values (count by site)") %>%
+  kable_styling()
+
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(noxdt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+Figure \@ref(fig:plotNoxDaily) shows daily mean values for all sites over time and includes smoother trend lines for each site.
+
+```{r plotNoxDaily, fig.cap="Oxides of nitrogen levels, Southampton (daily mean"}
 plotDT <- no2dt[!is.na(value), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
