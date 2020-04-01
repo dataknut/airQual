@@ -821,7 +821,7 @@ p <- p +
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
-p < addLockdownDate(p)
+p <- addLockdownDate(p)
 addWeekendsDate(p)
 
 nDaysOverThreshold <- uniqueN(extreme03Daily$obsDate)
