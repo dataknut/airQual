@@ -117,9 +117,9 @@ makeTilePlot <- function(dt, xVar, yVar, fillVar, yLab){
 
 addLockdownDate <- function(p){
   # assumes p has x = obsDate
-  p <- p + annotate("text", x = myParams$lockDownStartDate,
-             y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-             label = "UK covid lockdown to date", hjust = 0)
+  # p <- p + annotate("text", x = myParams$lockDownStartDate, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
              xmax = myParams$lockDownEndDate, 
              ymin = yMin, ymax = yMax, 
@@ -131,9 +131,9 @@ addLockdownDate <- function(p){
 
 addLockdownDateTime <- function(p){
   # assumes p has x = obsDateTime
-  p <- p + annotate("text", x = myParams$lockDownStartDateTime,
-             y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-             label = "UK covid lockdown to date", hjust = 0)
+  # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
              xmax = myParams$lockDownEndDateTime, 
              ymin = yMin, ymax = yMax, 
@@ -305,9 +305,11 @@ p <- makeDotPlot(plotDT,
                  )
 
 p <- p +
-  geom_smooth() + # add smoothed line
+  #geom_smooth(se = FALSE) + # add smoothed line
   guides(colour = guide_legend(ncol=2)) +
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
@@ -317,7 +319,7 @@ addLockdownDate(p)
 
 ```{r plotNo2Hourly, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, last 12 months)"}
 
-dt <- no2dt[dateTimeUTC > myParams$oneYearAgo]
+dt <- no2dt[!is.na(value) & dateTimeUTC > myParams$oneYearAgo]
 
 t <- dt[value > myParams$hourlyNo2Threshold_WHO][order(-value)]
 
@@ -327,7 +329,7 @@ kableExtra::kable(caption = paste0("Values greater than WHO threshold (NO2 > ",
   kable_styling()
 
 
-p <- makeDotPlot(dt[!is.na(value)], 
+p <- makeDotPlot(dt, 
                  xVar = "dateTimeUTC", 
                  yVar = "value", 
                  byVar = "site", 
@@ -342,8 +344,8 @@ p <- p +
   guides(colour = guide_legend(ncol=2)) +
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
-yMax <- max(plotDT$value)
-yMin <- min(plotDT$value)
+yMax <- max(dt$value)
+yMin <- min(dt$value)
 addLockdownDateTime(p)
 ```
 
@@ -362,9 +364,9 @@ p <- makeDotPlot(recentDT,
                  yLab = yLab)
 
 p <- p +
-  geom_smooth() + # add smoothed line
-  guides(colour = guide_legend(ncol=2)) +
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 # final plot - adds annotations
 yMin <- min(recentDT$value)
@@ -457,8 +459,9 @@ p <- makeDotPlot(plotDT,
 # dailySo2Threshold_WHO
 
 p <- p + geom_hline(yintercept = myParams$dailySo2Threshold_WHO) +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
@@ -506,8 +509,9 @@ p <- makeDotPlot(recentDT,
                  yLab = yLab)
 
 p <- p +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
@@ -611,9 +615,9 @@ p <- makeDotPlot(plotDT,
                  )
 
 p <- p + 
-  geom_hline(yintercept = myParams$dailyO3Threshold_WHO) +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
+ scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date\nReference line = WHO PM10 mean daily threshold")
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
@@ -661,8 +665,9 @@ p <- makeDotPlot(recentDT,
                  yLab = yLab)
 
 p <- p +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
@@ -764,8 +769,9 @@ p <- makeDotPlot(plotDT,
 
 p <- p + 
   geom_hline(yintercept = myParams$dailyPm10Threshold_WHO) +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
+  scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Coloured rectangle = UK covid lockdown to date\nReference line = WHO PM10 mean daily threshold")
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
@@ -813,8 +819,9 @@ p <- makeDotPlot(recentDT,
                  yLab = yLab)
 
 p <- p +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
+scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nColoured rectangle = UK covid lockdown to date")
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
@@ -910,8 +917,9 @@ p <- makeDotPlot(plotDT,
 
 p <- p + 
   geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) +
-  geom_smooth() + #add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO daily PM2.5 threshold")
+  scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Coloured rectangle = UK covid lockdown to date\nReference line = WHO daily PM2.5 threshold")
 
 yMax <- max(plotDT$mean)
 yMin <- min(plotDT$mean)
@@ -958,8 +966,9 @@ p <- makeDotPlot(recentDT,
                  yLab = yLab)
 
 p <- p +
-  geom_smooth() + # add smoothed line
-  labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nNB: There is no WHO PM2.5 hourly threshold")
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = "Coloured rectangle = UK covid lockdown to date\nNB: There is no WHO PM2.5 hourly threshold")
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
