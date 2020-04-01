@@ -114,7 +114,7 @@ addLockdownDate <- function(p){
   p <- p + annotate("text", x = lubridate::date("2020-03-24"),
              y = yMax * 0.4, angle = 10,size = myTextSize,
              label = "UK covid lockdown", hjust = 0)
-  p <- p + annotate("rect", xmin = lubridate::as_date("2020-03-24"),
+  p <- p + annotate("rect", xmin = lubridate::as_date(lubridate::today()),
              xmax = lubridate::as_date("2020-04-10"), 
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, 
@@ -129,7 +129,7 @@ addLockdownDateTime <- function(p){
              y = yMax * 0.4, angle = 10,size = myTextSize,
              label = "UK covid lockdown", hjust = 0)
   p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-24 00:00:00"),
-             xmax = lubridate::as_datetime("2020-04-10 00:00:00"), 
+             xmax = lubridate::as_datetime(lubridate::now()), 
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, 
              fill = vLineCol, 
@@ -284,6 +284,8 @@ p
 ```{r plotNo2DailyRecent, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean, recent)"}
 plotDT <- no2dt[!is.na(value) & obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
+
+yMax <- max(plotDT$value)
 
 p <- makeDotPlot(plotDT, 
                  xVar = "obsDate", 
