@@ -18,7 +18,7 @@ library(lubridate)
 
 # > years ----
 #"2016", "2017", "2018", 
-years <- c("2020")
+years <- c("2016", "2017", "2018","2020")
 
 # > locations ----
 locs <- list()

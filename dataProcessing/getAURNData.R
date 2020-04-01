@@ -17,7 +17,7 @@ library(lubridate)
 # Data cookery: https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf
 dataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 #"2016", "2017", "2018", 
-years <- c("2020")
+years <- c("2016", "2017", "2018","2020")
 sites <- c("SA33", "SOUT")
 
 # get data ----
