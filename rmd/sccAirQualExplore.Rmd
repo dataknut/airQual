@@ -408,7 +408,7 @@ addLockdownDateTime(p)
 
 Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r myParams$hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
 
-Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+Clearly there are spikes, the mean daily values show less variance (and less extremes) than the hourly data and there has also appears to have been a decreasing trend over time since early 2019.
 
 Figure \@ref(fig:no2recent) shows the most recent hourly data.
 
@@ -547,9 +547,9 @@ yMin <- min(dt$value)
 addLockdownDateTime(p)
 ```
 
-Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r myParams$hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
+Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. 
 
-Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
+Clearly there are peaks, the mean daily values show less variance (and less extremes) than the hourly data but it is difficult to discern any particular trend.
 
 Figure \@ref(fig:noxrecent) shows the most recent hourly data.
 
@@ -1266,6 +1266,39 @@ kableExtra::kable(caption = paste0("PM 2.5 values greater than WHO threshold (NO
   kable_styling()
 ```
 
+
+## What correlates with what?
+
+Basic pairs analysis
+
+```{r correlate}
+
+wideDT <- data.table::dcast(sotonAirDT[!is.na(value)], # drop data cells with value = NA
+                dateTimeUTC + site ~ pollutant, value.var = "value")
+
+#pairs(wideDT[, .(no,no2,nox,so2,o3,pm10,pm2.5)])
+
+library("GGally") 
+# https://ggobi.github.io/ggally/#columns_and_mapping
+GGally::ggpairs(wideDT, 
+                columns = c("no","no2","nox","so2","o3","pm10","pm2.5"),
+                aes(color = site)
+                )
+
+# pm10DT <- sotonAirDT[pollutant == "pm10"]
+# pm10DT[, pm10 := value]
+# setkey(pm10DT, dateTimeUTC, site, obsDate)
+# pm25DT <- sotonAirDT[pollutant == "pm2.5"]
+# pm25DT[, pm25 := value]
+# setkey(pm25DT, dateTimeUTC, site, obsDate)
+# 
+# dt <- pm10DT[pm25DT]
+# 
+# ggplot2::ggplot(dt, aes(x = pm10, y = pm25, colour = site)) +
+#   geom_point() +
+#   theme(legend.position="bottom") +
+#   scale_color_viridis_d(name = "Site")
+```
 
 ## Comparing SSC and AURN
 
