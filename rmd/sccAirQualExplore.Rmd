@@ -74,11 +74,13 @@ myParams$lockDownStartDateTime <- lubridate::as_datetime("2020-03-24 00:00:00")
 myParams$lockDownEndDate <- lubridate::today()
 myParams$lockDownEndDateTime <- lubridate::now()
 
-  myAlpha <- 0.1
-vLineAlpha <- 0.4
-vLineCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
-myTextSize <- 4
-rectAlpha <- 0.05
+myParams$recentCutDate <- lubridate::as_date("2020-03-01")
+
+myParams$myAlpha <- 0.1
+myParams$vLineAlpha <- 0.4
+myParams$vLineCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+myParams$myTextSize <- 4
+myParams$myTextSize <- 0.05
 
 # Functions ----
 makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
@@ -117,28 +119,28 @@ makeTilePlot <- function(dt, xVar, yVar, fillVar, yLab){
 addLockdownDate <- function(p){
   # assumes p has x = obsDate
   p <- p + annotate("text", x = myParams$lockDownStartDate,
-             y = yMax * 0.4, angle = 10,size = myTextSize,
+             y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
              label = "UK covid lockdown", hjust = 0)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
              xmax = myParams$lockDownEndDate, 
              ymin = yMin, ymax = yMax, 
-             alpha = rectAlpha, 
-             fill = vLineCol, 
-             colour = vLineCol)
+             alpha = myParams$myTextSize, 
+             fill = myParams$vLineCol, 
+             colour = myParams$vLineCol)
   return(p)
 }
 
 addLockdownDateTime <- function(p){
   # assumes p has x = obsDateTime
   p <- p + annotate("text", x = myParams$lockDownStartDateTime,
-             y = yMax * 0.4, angle = 10,size = myTextSize,
+             y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
              label = "UK covid lockdown", hjust = 0)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
              xmax = myParams$lockDownEndDateTime, 
              ymin = yMin, ymax = yMax, 
-             alpha = rectAlpha, 
-             fill = vLineCol, 
-             colour = vLineCol) 
+             alpha = myParams$myTextSize, 
+             fill = myParams$vLineCol, 
+             colour = myParams$vLineCol) 
     
   return(p)
 }
@@ -290,8 +292,6 @@ addLockdownDate(p)
 
 ```{r plotNo2DailyRecent, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean, recent)"}
 
-myParams$recentCutDate <- lubridate::as_date("2020-03-01")
-
 plotDT <- no2dt[!is.na(value) & 
                   obsDate > myParams$recentCutDate, 
                 .(mean = mean(value, na.rm = TRUE)),
@@ -352,7 +352,9 @@ Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 1
 
 Clearly there are winter peaks, the mean daily values show less variance (and less extremes) than the hourly data and there has also been a decreasing trend over time.
 
-```{r no2FromFeb1, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent"}
+Figure \@ref(fig:no2recent) shows the most recent hourly data.
+
+```{r no2recent, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent"}
 recentDT <- no2dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -494,7 +496,9 @@ yMin <- min(plotDT$value)
 addLockdownDateTime(p)
 ```
 
-```{r so2FromFeb1, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent"}
+Figure \@ref(fig:so2recent) shows the most recent hourly data.
+
+```{r so2recent, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent"}
 recentDT <- so2dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -647,8 +651,9 @@ addLockdownDateTime(p)
 
 Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over the last 12 months and suggests there may be outliers (see Table \@ref(tab:plotPM10Hourly)).
 
+Figure \@ref(fig:03recent) shows the most recent hourly data.
 
-```{r 03FromFeb1, fig.cap="03 levels, Southampton (hourly, recent"}
+```{r 03recent, fig.cap="03 levels, Southampton (hourly, recent"}
 recentDT <- o3dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
@@ -798,9 +803,10 @@ addLockdownDateTime(p)
 
 Figure \@ref(fig:plotPM10Hourly) shows hourly PM 10 values for all sites over the last 12 months and suggests there may be outliers (see Table \@ref(tab:plotPM10Hourly)).
 
+Figure \@ref(fig:pm10recent) shows the most recent hourly data.
 
-```{r pm10FromFeb1, fig.cap="PM10 levels, Southampton (hourly, since Feb 1st 2020"}
-recentDT <- pm10dt[!is.na(value) & obsDate > lubridate::date("2020-02-01")]
+```{r pm10recent, fig.cap="PM10 levels, Southampton (hourly, recent"}
+recentDT <- pm10dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
                  yVar = "value", 
@@ -942,8 +948,10 @@ addLockdownDateTime(p)
 
 Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for the last 12 months while Table \@ref(tab:plotPM25Hourly) reports the 6 worst hours.
 
-```{r pm25FromFeb1, fig.cap="PM2.5 levels, Southampton (hourly, since Feb 1st 2020"}
-recentDT <- pm25dt[!is.na(value) & obsDate > lubridate::date("2020-02-01")]
+Figure \@ref(fig:pm25recent) shows the most recent hourly data.
+
+```{r pm25recent, fig.cap="PM2.5 levels, Southampton (hourly, recent"}
+recentDT <- pm25dt[!is.na(value) & obsDate > myParams$recentCutDate]
 p <- makeDotPlot(recentDT, 
                  xVar = "dateTimeUTC", 
                  yVar = "value", 
