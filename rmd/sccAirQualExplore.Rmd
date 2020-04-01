@@ -285,7 +285,6 @@ p
 plotDT <- no2dt[!is.na(value) & obsDate > lubridate::as_date("2020-02-01"), .(mean = mean(value, na.rm = TRUE)),
              keyby = .(obsDate, site)]
 
-yMax <- max(plotDT$value)
 
 p <- makeDotPlot(plotDT, 
                  xVar = "obsDate", 
@@ -299,6 +298,8 @@ p <- p +
   guides(colour = guide_legend(ncol=2)) +
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDate(p)
 
 ```
@@ -331,6 +332,9 @@ p +
   guides(colour = guide_legend(ncol=2)) +
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
+addLockdownDateTime(p)
 ```
 
 Figure \@ref(fig:plotNo2Hourly) shows hourly values for all sites for the last 12 months. In this period there were `r nrow(t)` hours when the hourly Nitrogen Dioxide level breached the relevant WHO hourly threshold (`r myParams$hourlyNo2Threshold_WHO`). The worst 10 cases (if any) are shown in Table \@ref(tab:plotNo2Hourly).
@@ -441,6 +445,8 @@ p <- p + geom_hline(yintercept = myParams$dailySo2Threshold_WHO) +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDate(p)
 
 ```
@@ -469,7 +475,9 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
-p
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
+addLockdownDateTime(p)
 ```
 
 ```{r so2FromFeb1, fig.cap="Sulphour Dioxide levels, Southampton (hourly, since Feb 1st 2020"}
@@ -484,6 +492,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDateTime(p)
 
 ```
@@ -519,7 +529,7 @@ t <- head(o3dt[value <0], nrow(o3dt[value < 0]))
 kableExtra::kable(head(t), caption = "Negative 03 values - first 6") %>%
   kable_styling()
 
-p <- makeTilePlot(pm10dt, xVar = "dateTimeUTC", yVar = "site",
+p <- makeTilePlot(o3dt, xVar = "dateTimeUTC", yVar = "site",
                   fillVar = "value",
                   yLab = yLab)
 
@@ -586,6 +596,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDate(p)
 
 nDaysOverThreshold <- uniqueN(extreme03Daily$obsDate)
@@ -628,6 +640,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDateTime(p)
 
 ```
@@ -729,6 +743,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO PM10 mean daily threshold")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDate(p)
 
 nDaysOverThreshold <- uniqueN(extremePm10Daily$obsDate)
@@ -771,6 +787,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDateTime(p)
 
 ```
@@ -866,6 +884,8 @@ p <- p +
   geom_smooth() + #add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nReference line = WHO daily PM2.5 threshold")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDate(p)
 
 nDaysOverThreshold <- uniqueN(extremePm25Daily$obsDate)
@@ -891,7 +911,9 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nNB: There is no WHO PM2.5 hourly threshold")
 
-p
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
+addLockdownDateTime(p)
 ```
 
 Figure \@ref(fig:plotPM25Hourly) shows hourly values for all sites for the last 12 months while Table \@ref(tab:plotPM25Hourly) reports the 6 worst hours.
@@ -908,6 +930,8 @@ p <- p +
   geom_smooth() + # add smoothed line
   labs(caption = "Trend line = Generalized additive model (gam) with integrated smoothness estimation\nNB: There is no WHO PM2.5 hourly threshold")
 
+yMax <- max(plotDT$value)
+yMin <- min(plotDT$value)
 addLockdownDateTime(p)
 
 ```
