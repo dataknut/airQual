@@ -137,9 +137,9 @@ doReport <- function(rmd){
 
 #> yaml ----
 myParams$title <- "Air Quality in Southampton (UK)"
-myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
+myParams$subtitle <- "Extracting data for modelling"
 myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
-myParams$rmd <- "sccAirQualExplore_lockdown" # use raw SCC data not AURN
+myParams$rmd <- "sccAirQualDataExtract" # use raw SCC data not AURN
 
 # filter the data here
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
