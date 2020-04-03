@@ -203,12 +203,6 @@ addWeekendsDateTime <- function(p){
 
 # About
 
-## Contributions
-
-Please note that authorship is alphabetical. Contributions are listed below - see [github](https://github.com/CfSOtago/airQual/commits/master) for details and who to blame for what :-).
-
- * Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)
-
 ## Code
 
  * https://github.com/CfSOtago/airQual/commits/master
@@ -217,16 +211,12 @@ Please note that authorship is alphabetical. Contributions are listed below - se
 
 If you wish to refer to any of the material from this report please cite as:
 
- * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , University of Southampton: Southampton, UK.
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk) University of Southampton: Southampton, UK.
 
 Report circulation:
 
  * Public
  
-Report purpose: 
- 
- * to explore (official) Southampton City Council Air Quality data (http://southampton.my-air.uk)
-
 This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
 
 ## Disclaimer
@@ -260,42 +250,19 @@ t <- sotonAirDT[!is.na(value),.(from = min(dateTimeUTC),
            nObs = .N,
            nPollutants = uniqueN(pollutant)), keyby = .(site, source)]
 
-kableExtra::kable(t, caption = "Dates data != NA available by site and measure",
+kableExtra::kable(t, caption = "Dates where data != NA by site and measure",
                   digits = 2) %>%
   kable_styling()
 ```
 
 
-# Analysis
+# Nitrogen Dioxide (no2)
 
-In this section we present graphical analysis of the previoulsy downloaded data. Note this is just a snapshot of the data available.
-
-## Nitrogen Dioxide (no2)
-
-From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
-
-"As an air pollutant, NO2 has several correlated activities. At short-term, concentrations exceeding 200 μg/m3, it is a toxic gas which causes significant inflammation of the airways.
-
-NO2 is the main source of nitrate aerosols, which form an important fraction of PM2.5 and, in the presence of ultraviolet light, of ozone. The major sources of anthropogenic emissions of NO2 are combustion processes (heating, power generation, and engines in vehicles and ships).
-
-Health effects
-
-Epidemiological studies have shown that symptoms of bronchitis in asthmatic children increase in association with long-term exposure to NO2. Reduced lung function growth is also linked to NO2 at concentrations currently measured (or observed) in cities of Europe and North America."
 
 ```{r No2Summary}
 yLab <- "Nitrogen Dioxide (ug/m3)"
 no2dt <- sotonAirDT[pollutant == "no2"]
-t <- no2dt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE),
-            minDate = min(obsDate),
-            maxDate = max(obsDate)), keyby = .(site, source)]
-kableExtra::kable(t, caption = "Summary of NO2 data") %>%
-  kable_styling()
 ```
-
-Table \@ref(tab:No2Summary) suggests that there may be a few (`r nrow(no2dt[value < 0])`) negative values.
 
 Figure \@ref(fig:no2recent) shows the most recent hourly data.
 
@@ -323,22 +290,12 @@ addWeekendsDateTime(p)
 > Beware seasonal trends and weather effects
 
 
-## Oxides of Nitrogen (nox)
+# Oxides of Nitrogen (nox)
 
 ```{r NoxSummary}
 yLab <- "Oxides of Nitrogen (ug/m3)"
 noxdt <- sotonAirDT[pollutant == "nox"]
-t <- noxdt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE),
-            minDate = min(obsDate),
-            maxDate = max(obsDate)), keyby = .(site, source)]
-kableExtra::kable(t, caption = "Summary of NOx data") %>%
-  kable_styling()
 ```
-
-Table \@ref(tab:NoxSummary) suggests that there may be a few (`r nrow(noxdt[value < 0])`) negative values. 
 
 Figure \@ref(fig:noxrecent) shows the most recent hourly data.
 
@@ -367,25 +324,12 @@ addWeekendsDateTime(p)
 > Beware seasonal trends and weather effects
 
 
-## Sulphour Dioxide
-
-From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
-
-"SO2 is a colourless gas with a sharp odour. It is produced from the burning of fossil fuels (coal and oil) and the smelting of mineral ores that contain sulfur. The main anthropogenic source of SO2 is the burning of sulfur-containing fossil fuels for domestic heating, power generation and motor vehicles.
-
-Health effects
-
-SO2 can affect the respiratory system and the functions of the lungs, and causes irritation of the eyes. Inflammation of the respiratory tract causes coughing, mucus secretion, aggravation of asthma and chronic bronchitis and makes people more prone to infections of the respiratory tract. Hospital admissions for cardiac disease and mortality increase on days with higher SO2 levels. When SO2 combines with water, it forms sulfuric acid; this is the main component of acid rain which is a cause of deforestation."
+# Sulphour Dioxide
 
 ```{r So2Summary}
 yLab <- "Sulphour Dioxide (ug/m3)"
 so2dt <- sotonAirDT[pollutant == "so2"]
-t <- so2dt[, .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE)), keyby = .(site)]
-kableExtra::kable(t, caption = "Summary of SO2 data") %>%
-  kable_styling()
+
 ```
 
 Figure \@ref(fig:so2recent) shows the most recent hourly data.
@@ -411,29 +355,13 @@ addWeekendsDateTime(p)
 
 > Beware seasonal trends and weather effects
 
-## Ozone
-
-From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
-
-"Ozone at ground level – not to be confused with the ozone layer in the upper atmosphere – is one of the major constituents of photochemical smog. It is formed by the reaction with sunlight (photochemical reaction) of pollutants such as nitrogen oxides (NOx) from vehicle and industry emissions and volatile organic compounds (VOCs) emitted by vehicles, solvents and industry. As a result, the highest levels of ozone pollution occur during periods of sunny weather.
-Health effects
-
-Excessive ozone in the air can have a marked effect on human health. It can cause breathing problems, trigger asthma, reduce lung function and cause lung diseases. "
+# Ozone
 
 
 ```{r o3Summary}
 yLab <- "Ozone (ug/m3)"
 o3dt <- sotonAirDT[pollutant == "o3"]
-
-t <- o3dt[, .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
-kableExtra::kable(t, caption = "Summary of o3 data") %>%
-  kable_styling()
 ```
-
-Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(o3dt[value < 0])`) negative values.
 
 Figure \@ref(fig:03recent) shows the most recent hourly data.
 
@@ -458,29 +386,13 @@ addWeekendsDateTime(p)
 
 > Beware seasonal trends and weather effects
 
-## PM 10
-
-From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
-
-"PM is a common proxy indicator for air pollution. It affects more people than any other pollutant. The major components of PM are sulfate, nitrates, ammonia, sodium chloride, black carbon, mineral dust and water. It consists of a complex mixture of solid and liquid particles of organic and inorganic substances suspended in the air. While particles  with a diameter of 10 microns or less, (≤ PM10) can penetrate and lodge deep inside the lungs, the even more health-damaging particles are those with a diameter of 2.5 microns or less, (≤ PM2.5). PM2.5  can penetrate the lung barrier and enter the blood system. Chronic exposure to particles contributes to the risk of developing cardiovascular and respiratory diseases, as well as of lung cancer.
-
-There is a close, quantitative relationship between exposure to high concentrations of small particulates (PM10 and PM2.5) and increased mortality or morbidity, both daily and over time. Conversely, when concentrations of small and fine particulates are reduced, related mortality will also go down – presuming other factors remain the same. This allows policy-makers to project the population health improvements that could be expected if particulate air pollution is reduced."
-
-PM 10 data: has more sensors and wider coverage than PM2.5
+# PM 10
 
 ```{r pm10Summary}
 yLab <- "PM 10 (ug/m3)"
 pm10dt <- sotonAirDT[pollutant == "pm10"]
 
-t <- pm10dt[, .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
-kableExtra::kable(t, caption = "Summary of pm10 data") %>%
-  kable_styling()
 ```
-
-Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(pm10dt[value < 0])`) negative values. 
 
 Figure \@ref(fig:pm10recent) shows the most recent hourly data.
 
@@ -505,24 +417,13 @@ addWeekendsDateTime(p)
 
 > Beware seasonal trends and weather effects
 
-## PM 2.5
-
-From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
-
-"Small particulate pollution has health impacts even at very low concentrations – indeed no threshold has been identified below which no damage to health is observed. Therefore, the WHO 2005 guideline limits aimed to achieve the lowest concentrations of PM possible."
+# PM 2.5
 
 ```{r pm25Summary}
 yLab <- "PM 2.5 (ug/m3)"
 pm25dt <- sotonAirDT[pollutant == "pm2.5"]
-t <- pm25dt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
-            sd = sd(value, na.rm = TRUE),
-            min = min(value, na.rm = TRUE),
-            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
-kableExtra::kable(t, caption = "Summary of pm2.5 data") %>%
-  kable_styling()
-```
 
-Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(pm25dt[value < 0])`) negative values. 
+```
 
 Figure \@ref(fig:pm25recent) shows the most recent hourly data.
 
