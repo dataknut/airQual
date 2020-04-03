@@ -4,7 +4,7 @@ __Best viewed at https://cfsotago.github.io/airQual/__
 
 Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
 
-## Southampton (UK) lockdown analysis
+### Southampton (UK) lockdown analysis
 
 We update these on a regular basis. These link to the most recent plots for:
 
