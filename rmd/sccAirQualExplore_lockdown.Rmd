@@ -1,0 +1,649 @@
+---
+params:
+  title: ''
+  subtitle: ''
+  authors: ''
+title: '`r params$title`'
+subtitle: '`r params$subtitle`'
+author: '`r params$authors`'
+date: 'Last run at: `r getRunDateTime()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    fig_width: 5
+always_allow_html: yes
+bibliography: '`r path.expand("~/bibliography.bib")`'
+---
+
+```{r knitrSetUp, include=FALSE}
+
+# Set knitr options
+knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what is happening
+                      warning = FALSE,
+                      message = FALSE,
+                      fig_caption = TRUE,
+                      fig_height = 6,        # default, make it bigger to stretch vertical axis
+                      fig_width = 8,
+                      fig_width = 8,         # full width
+                      tidy = TRUE)           # tidy up code in case echo = TRUE
+
+```
+
+
+```{r codeSetup, include=FALSE}
+
+# Load Packages ----
+rmdLibs <- c("ggplot2",
+            "kableExtra",
+            "plotly",
+            "skimr",
+            "viridis")
+
+dkUtils::loadLibraries(rmdLibs)
+
+# Adjust knitr options if required
+knitr::opts_chunk$set(echo = TRUE)
+
+# Log compile time:
+myParams$startTime <- proc.time()
+
+# Parameters ----
+# set xlim for plotly to reduce plot size & load speed
+myParams$xlimMinDateTime <- lubridate::as_datetime("2018-01-01 00:00:00")
+myParams$xlimMaxDateTime <- lubridate::as_datetime("2020-06-01 00:00:00")
+myParams$xlimMinDate <- lubridate::as_date("2018-01-01")
+myParams$xlimMaxDate <- lubridate::as_date("2020-06-01")
+
+myParams$oneYearAgo <- lubridate::as_datetime(now() - (365*24*60*60))
+
+# set values for annotations
+myParams$lockDownStartDate <- as.Date("2020-03-24")
+myParams$lockDownStartDateTime <- lubridate::as_datetime("2020-03-24 00:00:00")
+myParams$lockDownEndDate <- lubridate::today()
+myParams$lockDownEndDateTime <- lubridate::now()
+
+myParams$recentCutDate <- lubridate::as_date("2020-03-01")
+
+myParams$gamCap <- "Trend line = Generalized additive model (gam) with integrated smoothness estimation"
+myParams$lockdownCap <- "\nColoured rectangle = UK covid lockdown to date"
+myParams$weekendCap <- "\nShaded rectangle = weekends"
+
+myParams$myAlpha <- 0.1
+myParams$vLineAlpha <- 0.4
+myParams$vLineCol <- "red" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+myParams$myTextSize <- 4
+
+# Functions ----
+makeDotPlot <- function(dt, xVar, yVar, byVar, yLab){
+  p <- ggplot2::ggplot(dt, aes(x = get(xVar), 
+                               y = get(yVar),
+                               colour = get(byVar),
+                               alpha = 1/100 # https://ggplot2.tidyverse.org/reference/geom_point.html
+                               )
+                       ) +
+    geom_point(size = 1, # small
+               shape = 4 # small cross shape
+               ) +
+    scale_colour_viridis_d(name = eval(byVar)) +
+    guides(alpha = FALSE) + # remove alpha legend 
+    labs(x = "Time",
+         y = eval(yLab)) +  
+    theme(legend.position="bottom") +
+    guides(colour = guide_legend(nrow = 2)) # forces 2 rows to legend
+  return(p)
+}
+
+makeTilePlot <- function(dt, xVar, yVar, fillVar, yLab){
+  p <- ggplot2::ggplot(dt, aes(x = get(xVar), 
+                               y = get(yVar),
+                               fill = get(fillVar)
+                               )
+                       ) +
+    geom_tile() +
+    scale_fill_continuous(low = "green", high = "red", name = "Value") +
+    labs(x = "Time",
+         y = yLab) +  
+    theme(legend.position="bottom")
+  return(p)
+}
+
+addLockdownDate <- function(p){
+  # assumes p has x = obsDate
+  # p <- p + annotate("text", x = myParams$lockDownStartDate, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
+             xmax = myParams$lockDownEndDate, 
+             ymin = yMin, ymax = yMax, 
+             alpha = myParams$myAlpha, 
+             fill = myParams$vLineCol, 
+             colour = myParams$vLineCol)
+  return(p)
+}
+
+addLockdownDateTime <- function(p){
+  # assumes p has x = obsDateTime
+  # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
+             xmax = myParams$lockDownEndDateTime, 
+             ymin = yMin, ymax = yMax, 
+             alpha = myParams$myAlpha, 
+             fill = myParams$vLineCol, 
+             colour = myParams$vLineCol) 
+    
+  return(p)
+}
+
+# only makes sense to use these for x axis covering March onwards
+myParams$weAlpha <- 0.3
+myParams$weFill <- "grey50"
+addWeekendsDate <- function(p){
+  p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
+                    xmax = as.Date("2020-03-08"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-03-14"),
+                    xmax = as.Date("2020-03-15"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-03-21"),
+                    xmax = as.Date("2020-03-22"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-03-28"),
+                    xmax = as.Date("2020-03-29"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-04-04"),
+                    xmax = as.Date("2020-04-05"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  return(p)
+}
+
+addWeekendsDateTime <- function(p){
+   p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-07 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-03-08 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-14 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-03-15 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-21 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-03-22 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-28 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-03-29 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-04-04 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-04-05 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  return(p)
+}
+```
+
+# About
+
+## Contributions
+
+Please note that authorship is alphabetical. Contributions are listed below - see [github](https://github.com/CfSOtago/airQual/commits/master) for details and who to blame for what :-).
+
+ * Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)
+
+## Code
+
+ * https://github.com/CfSOtago/airQual/commits/master
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+Report purpose: 
+ 
+ * to explore (official) Southampton City Council Air Quality data (http://southampton.my-air.uk)
+
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
+
+## Disclaimer
+
+> I usually do energy demand research but in the absence of access to real time demand data on lockdown (unlike during the [World Cup](http://www.energy.soton.ac.uk/the-end-of-the-world-cup/)) I'm looking at other things.
+ 
+# Introduction
+
+Data for Southampton downloaded from :
+
+ * http://southampton.my-air.uk. See also https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/ and
+ * https://uk-air.defra.gov.uk/networks/network-info?view=aurn
+
+Southampton City Council collects various forms of air quality data at the sites shown in \@ref(tab:showSites). Some of these sites feed data to AURN. The AURN data then undergoes a manual check and [ratification](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) process.
+
+WHO publishes [information](https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health) on the health consequences and "acceptable" exposure levels for each of these.
+
+> Data health warning
+
+The southampton.my-air.uk data used is _not_ cleaned or tested for measurement error. The AURN from https://uk-air.defra.gov.uk/ has been ratified if it is more than 6 months old.
+
+For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
+
+```{r showSites}
+sotonAirDT <- sotonAirDT[obsDate > as.Date("2019-01-01")] # for speed
+sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)]
+sotonAirDT[, site := ifelse(site == "Southampton A33", "Southampton A33 AURN data", site)]
+sotonAirDT[, site := ifelse(site == "Southampton Centre", "Southampton Centre AURN data", site)]
+t <- sotonAirDT[!is.na(value),.(from = min(dateTimeUTC),
+           to = max(dateTimeUTC),
+           nObs = .N,
+           nPollutants = uniqueN(pollutant)), keyby = .(site, source)]
+
+kableExtra::kable(t, caption = "Dates data != NA available by site and measure",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+# Summarise data
+
+Summarise previously downloaded and processed data... Note that this may not be completely up to date.
+
+```{r summariseData}
+t <- sotonAirDT[, .(mean = mean(value, na.rm = TRUE)
+            ), keyby = .(site, pollutant, source)]
+
+kableExtra::kable(t, caption = "Mean values per site (NaN indicates not measured)") %>%
+  kable_styling()
+
+```
+
+Table \@ref(tab:summariseData) gives an indication of the availability of the different measures.
+
+
+# Analysis
+
+In this section we present graphical analysis of the previoulsy downloaded data. Note this is just a snapshot of the data available.
+
+## Nitrogen Dioxide (no2)
+
+From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+"As an air pollutant, NO2 has several correlated activities. At short-term, concentrations exceeding 200 μg/m3, it is a toxic gas which causes significant inflammation of the airways.
+
+NO2 is the main source of nitrate aerosols, which form an important fraction of PM2.5 and, in the presence of ultraviolet light, of ozone. The major sources of anthropogenic emissions of NO2 are combustion processes (heating, power generation, and engines in vehicles and ships).
+
+Health effects
+
+Epidemiological studies have shown that symptoms of bronchitis in asthmatic children increase in association with long-term exposure to NO2. Reduced lung function growth is also linked to NO2 at concentrations currently measured (or observed) in cities of Europe and North America."
+
+```{r No2Summary}
+yLab <- "Nitrogen Dioxide (ug/m3)"
+no2dt <- sotonAirDT[pollutant == "no2"]
+t <- no2dt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE),
+            minDate = min(obsDate),
+            maxDate = max(obsDate)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of NO2 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:No2Summary) suggests that there may be a few (`r nrow(no2dt[value < 0])`) negative values.
+
+Figure \@ref(fig:no2recent) shows the most recent hourly data.
+
+```{r no2recent, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent)"}
+recentDT <- no2dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+
+# final plot - adds annotations
+yMin <- min(recentDT$value)
+yMax <- max(recentDT$value)
+
+p <- addLockdownDateTime(p)
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+
+## Oxides of Nitrogen (nox)
+
+```{r NoxSummary}
+yLab <- "Oxides of Nitrogen (ug/m3)"
+noxdt <- sotonAirDT[pollutant == "nox"]
+t <- noxdt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE),
+            minDate = min(obsDate),
+            maxDate = max(obsDate)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of NOx data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:NoxSummary) suggests that there may be a few (`r nrow(noxdt[value < 0])`) negative values. 
+
+Figure \@ref(fig:noxrecent) shows the most recent hourly data.
+
+```{r noxrecent, fig.cap="Oxides of nitrogen levels, Southampton (hourly, recent)"}
+recentDT <- noxdt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+
+# final plot - adds annotations
+yMin <- min(recentDT$value)
+yMax <- max(recentDT$value)
+
+p <- addLockdownDateTime(p)
+
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+
+## Sulphour Dioxide
+
+From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+"SO2 is a colourless gas with a sharp odour. It is produced from the burning of fossil fuels (coal and oil) and the smelting of mineral ores that contain sulfur. The main anthropogenic source of SO2 is the burning of sulfur-containing fossil fuels for domestic heating, power generation and motor vehicles.
+
+Health effects
+
+SO2 can affect the respiratory system and the functions of the lungs, and causes irritation of the eyes. Inflammation of the respiratory tract causes coughing, mucus secretion, aggravation of asthma and chronic bronchitis and makes people more prone to infections of the respiratory tract. Hospital admissions for cardiac disease and mortality increase on days with higher SO2 levels. When SO2 combines with water, it forms sulfuric acid; this is the main component of acid rain which is a cause of deforestation."
+
+```{r So2Summary}
+yLab <- "Sulphour Dioxide (ug/m3)"
+so2dt <- sotonAirDT[pollutant == "so2"]
+t <- so2dt[, .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site)]
+kableExtra::kable(t, caption = "Summary of SO2 data") %>%
+  kable_styling()
+```
+
+Figure \@ref(fig:so2recent) shows the most recent hourly data.
+
+```{r so2recent, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent)"}
+recentDT <- so2dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+
+yMax <- max(recentDT$value)
+yMin <- min(recentDT$value)
+p <- addLockdownDateTime(p)
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+## Ozone
+
+From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+"Ozone at ground level – not to be confused with the ozone layer in the upper atmosphere – is one of the major constituents of photochemical smog. It is formed by the reaction with sunlight (photochemical reaction) of pollutants such as nitrogen oxides (NOx) from vehicle and industry emissions and volatile organic compounds (VOCs) emitted by vehicles, solvents and industry. As a result, the highest levels of ozone pollution occur during periods of sunny weather.
+Health effects
+
+Excessive ozone in the air can have a marked effect on human health. It can cause breathing problems, trigger asthma, reduce lung function and cause lung diseases. "
+
+
+```{r o3Summary}
+yLab <- "Ozone (ug/m3)"
+o3dt <- sotonAirDT[pollutant == "o3"]
+
+t <- o3dt[, .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of o3 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(o3dt[value < 0])`) negative values.
+
+Figure \@ref(fig:03recent) shows the most recent hourly data.
+
+```{r 03recent, fig.cap="03 levels, Southampton (hourly, recent)"}
+recentDT <- o3dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+
+yMax <- max(recentDT$value)
+yMin <- min(recentDT$value)
+p <- addLockdownDateTime(p)
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+## PM 10
+
+From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+"PM is a common proxy indicator for air pollution. It affects more people than any other pollutant. The major components of PM are sulfate, nitrates, ammonia, sodium chloride, black carbon, mineral dust and water. It consists of a complex mixture of solid and liquid particles of organic and inorganic substances suspended in the air. While particles  with a diameter of 10 microns or less, (≤ PM10) can penetrate and lodge deep inside the lungs, the even more health-damaging particles are those with a diameter of 2.5 microns or less, (≤ PM2.5). PM2.5  can penetrate the lung barrier and enter the blood system. Chronic exposure to particles contributes to the risk of developing cardiovascular and respiratory diseases, as well as of lung cancer.
+
+There is a close, quantitative relationship between exposure to high concentrations of small particulates (PM10 and PM2.5) and increased mortality or morbidity, both daily and over time. Conversely, when concentrations of small and fine particulates are reduced, related mortality will also go down – presuming other factors remain the same. This allows policy-makers to project the population health improvements that could be expected if particulate air pollution is reduced."
+
+PM 10 data: has more sensors and wider coverage than PM2.5
+
+```{r pm10Summary}
+yLab <- "PM 10 (ug/m3)"
+pm10dt <- sotonAirDT[pollutant == "pm10"]
+
+t <- pm10dt[, .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of pm10 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:pm10Summary) suggests that there may be a few (`r nrow(pm10dt[value < 0])`) negative values. 
+
+Figure \@ref(fig:pm10recent) shows the most recent hourly data.
+
+```{r pm10recent, fig.cap="PM10 levels, Southampton (hourly, recent)"}
+recentDT <- pm10dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+yMax <- max(recentDT$value)
+yMin <- min(recentDT$value)
+p <- addLockdownDateTime(p)
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+## PM 2.5
+
+From WHO: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+"Small particulate pollution has health impacts even at very low concentrations – indeed no threshold has been identified below which no damage to health is observed. Therefore, the WHO 2005 guideline limits aimed to achieve the lowest concentrations of PM possible."
+
+```{r pm25Summary}
+yLab <- "PM 2.5 (ug/m3)"
+pm25dt <- sotonAirDT[pollutant == "pm2.5"]
+t <- pm25dt[!is.na(value), .(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            min = min(value, na.rm = TRUE),
+            max = max(value, na.rm = TRUE)), keyby = .(site, source)]
+kableExtra::kable(t, caption = "Summary of pm2.5 data") %>%
+  kable_styling()
+```
+
+Table \@ref(tab:pm25Summary) suggests that there may be a few (`r nrow(pm25dt[value < 0])`) negative values. 
+
+Figure \@ref(fig:pm25recent) shows the most recent hourly data.
+
+```{r pm25recent, fig.cap="PM2.5 levels, Southampton (hourly, recent)"}
+recentDT <- pm25dt[!is.na(value) & obsDate > myParams$recentCutDate]
+p <- makeDotPlot(recentDT, 
+                 xVar = "dateTimeUTC", 
+                 yVar = "value", 
+                 byVar = "site", 
+                 yLab = yLab)
+
+p <- p +
+  scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  labs(caption = paste0(myParams$gamCap, myParams$weekendCap, "\nNB: There is no WHO PM2.5 hourly threshold"))
+
+yMax <- max(recentDT$value)
+yMin <- min(recentDT$value)
+p <- addLockdownDateTime(p)
+addWeekendsDateTime(p)
+```
+
+> Beware seasonal trends and weather effects
+
+# Annex
+
+## Missing data
+
+Several of these datasets suffer from missing data. This is visualised below.
+
+```{r testNegNo2, fig.cap="Nitrogen Dioxide data availability and levels over time"}
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(no2dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+```{r testNegNox, fig.cap="Oxides of nitrogen data availability and levels over time"}
+
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(noxdt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+```{r testNegSo2, fig.cap="Sulphour Dioxide data availability and levels over time"}
+
+# dt,xvar, yvar,fillVar, yLab
+p <- makeTilePlot(so2dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+```{r testNego3, fig.cap = "Availability and level of o3 data over time"}
+
+p <- makeTilePlot(o3dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+```{r testNegPM10, fig.cap = "Availability and level of PM 10 data over time"}
+p <- makeTilePlot(pm10dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+```{r testNegPM25, fig.cap = "Availability and level of PM 10 data over time"}
+
+p <- makeTilePlot(pm25dt, xVar = "dateTimeUTC", yVar = "site",
+                  fillVar = "value",
+                  yLab = yLab)
+
+p
+```
+
+# Runtime
+
+Report generated using [knitr](https://cran.r-project.org/package=knitr) in [RStudio](http://www.rstudio.com) with `r R.version.string` running on `r R.version$platform` (`r Sys.info()[3]`).
+
+```{r check runtime}
+t <- proc.time() - myParams$startTime
+
+elapsed <- t[[3]]
+```
+
+Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
+
+R packages used:
+
+ * data.table - [@data.table]
+ * ggplot2 - [@ggplot2]
+ * here - [@here]
+ * kableExtra - [@kableExtra]
+ * lubridate - [@lubridate]
+ * skimr - [@skimr]
+ * viridis - [@viridis]
+            
+# References
+

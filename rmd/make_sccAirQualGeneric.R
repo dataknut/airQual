@@ -117,6 +117,8 @@ sotonAirDT <- rbind(aurnDT[, .(dateTimeUTC, pollutant, source, site, value)],
 # test
 with(sotonAirDT, table(pollutant, source))
 
+sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
+
 # Functions ----
 doReport <- function(rmd){
   rmdFile <- paste0(myParams$projLoc, "/rmd/", rmd, ".Rmd")
@@ -135,9 +137,9 @@ doReport <- function(rmd){
 
 #> yaml ----
 myParams$title <- "Air Quality in Southampton (UK)"
-myParams$subtitle <- "Exploring the SSC and AURN data"
+myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
-myParams$rmd <- "sccAirQualExplore" # use raw SCC data not AURN
+myParams$rmd <- "sccAirQualExplore_lockdown" # use raw SCC data not AURN
 
 # filter the data here
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
