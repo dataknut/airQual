@@ -1,12 +1,10 @@
 ## airQual: exploration of air quality data
 
-__Best viewed at https://cfsotago.github.io/airQual/__
-
 Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
 
 ### Southampton (UK) lockdown analysis
 
-We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html) on a regular basis. These link to the most recent plots for:
+We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html) on a regular basis. These are the most recent plots for:
 
  * NO2 [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html#fig:no2recent): weekends notably lower <- less travel? Weekdays possibly lower but clearly still ’essential worker’ travel especially mid-week? Notice it started 1 week before true lockdown
  * NOx [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html#fig:noxrecent): as per NO2?
