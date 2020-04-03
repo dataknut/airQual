@@ -4,6 +4,19 @@ __Best viewed at https://cfsotago.github.io/airQual/__
 
 Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
 
+## Southampton (UK) lockdown analysis
+
+We update these on a regular basis. These link to the most recent plots for:
+
+ * NO2 [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:no2recent): weekends notably lower <- less travel? Weekdays possibly lower but clearly still ’essential worker’ travel especially mid-week? Notice it started 1 week before true lockdown
+ * NOx [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:noxrecent): as per NO2?
+ * SO2 [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:so2recent): Possibly similar to NO2 but...
+ * Ozone [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:03recent): much more affected by weather (sunny first lockdown weekend)?
+ * PM10 [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:pm10recent): as for NO2 but less noticeable the week before lockdown. But also possibly weather effect?
+ * PM2.5 [plot](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html#fig:pm25recent): much more obvious lockdown but not pre-lockdown effect. But also possibly weather effect and even maybe a sensor/measurement effect? The AURN data here has not yet been [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf).
+
+NB: The AURN data used above is not yet  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) as it less than 6 months old.
+
 ### New Zealand
 
 See https://www.mfe.govt.nz/air
