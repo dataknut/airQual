@@ -265,21 +265,6 @@ kableExtra::kable(t, caption = "Dates data != NA available by site and measure",
   kable_styling()
 ```
 
-# Summarise data
-
-Summarise previously downloaded and processed data... Note that this may not be completely up to date.
-
-```{r summariseData}
-t <- sotonAirDT[, .(mean = mean(value, na.rm = TRUE)
-            ), keyby = .(site, pollutant, source)]
-
-kableExtra::kable(t, caption = "Mean values per site (NaN indicates not measured)") %>%
-  kable_styling()
-
-```
-
-Table \@ref(tab:summariseData) gives an indication of the availability of the different measures.
-
 
 # Analysis
 
