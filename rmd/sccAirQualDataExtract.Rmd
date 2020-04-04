@@ -241,7 +241,9 @@ Ultimately need to create a dataset with: Year, month, day, hour, minute (0,10,2
 For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
 
 ```{r showSites}
-aurnDT <- aurnDT[obsDate > as.Date("2019-01-01")] # for speed
+
+aurnDT <- aurnDT[obsDate > as.Date("2018-01-01")] # for speed
+
 aurnDT[, pollutant := ifelse( pollutant == "wd", "windDirection", pollutant)]
 aurnDT[, pollutant := ifelse( pollutant == "ws", "windSpeed", pollutant)]
 
@@ -384,7 +386,7 @@ wsdt <- aurnDT[pollutant == "windSpeed"]
 
 Figure \@ref(fig:wstest) shows the availability of data over time.
 
-```{r wstest, fig.cap = "Availability and level of o3 data over time"}
+```{r wstest, fig.cap = "Availability and level of wind speed data over time"}
 
 p <- makeTilePlot(wsdt, xVar = "dateTimeUTC", yVar = "site",
                   fillVar = "value",
@@ -403,7 +405,7 @@ wddt <- aurnDT[pollutant == "windDirection"]
 
 Figure \@ref(fig:wdtest) shows the availability of data over time.
 
-```{r wdtest, fig.cap = "Availability and level of o3 data over time"}
+```{r wdtest, fig.cap = "Availability and level of wind direction data over time"}
 
 p <- makeTilePlot(wddt, xVar = "dateTimeUTC", yVar = "site",
                   fillVar = "value",
