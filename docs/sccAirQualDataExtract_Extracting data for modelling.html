@@ -1592,7 +1592,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Extracting data for modelling</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk" class="email">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-04-04 01:06:16 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-04-04 01:11:03 (Europe/London)</h4>
 
 </div>
 
@@ -1938,7 +1938,7 @@ Figure 9.3: Availability and level of wind direction data over time
 <h1><span class="header-section-number">10</span> Save data</h1>
 <p>Save long form data to <a href="../data/">data</a> folder.</p>
 <pre class="r"><code>aurnDT[, `:=`(weekDay, lubridate::wday(dateTimeUTC, label = TRUE, abbr = TRUE))]
-f &lt;- paste0(here::here(), &quot;/data/sotonExtract2019_2020.csv&quot;)
+f &lt;- paste0(here::here(), &quot;/data/sotonExtract2018_2020.csv&quot;)
 data.table::fwrite(aurnDT, f)</code></pre>
 </div>
 <div id="annex" class="section level1">
@@ -1950,7 +1950,7 @@ data.table::fwrite(aurnDT, f)</code></pre>
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 20.863 seconds ( 0.35 minutes).</p>
+<p>Analysis completed in 22.593 seconds ( 0.38 minutes).</p>
 <p>R packages used:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>

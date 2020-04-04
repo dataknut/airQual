@@ -420,7 +420,7 @@ Save long form data to [data](../data/) folder.
 
 ```{r saveData}
 aurnDT[, weekDay := lubridate::wday(dateTimeUTC, label = TRUE, abbr = TRUE)]
-f <- paste0(here::here(), "/data/sotonExtract2019_2020.csv")
+f <- paste0(here::here(), "/data/sotonExtract2018_2020.csv")
 data.table::fwrite(aurnDT, f)
 ```
 
