@@ -240,14 +240,22 @@ The southampton.my-air.uk data used is _not_ cleaned or tested for measurement e
 
 For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
 
-```{r showSites}
-sotonAirDT <- sotonAirDT[obsDate > as.Date("2019-01-01")] # for speed
+```{r prepData}
+sotonAirDT <- sotonAirDT[pollutant != "wd" & 
+                           pollutant != "ws" &
+                           pollutant != "nv2.5" &
+                           pollutant != "nv10" &
+                           pollutant != "v10" ]
+
+
 sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)]
-sotonAirDT[, site := ifelse(site == "Southampton A33", "Southampton A33 AURN data", site)]
-sotonAirDT[, site := ifelse(site == "Southampton Centre", "Southampton Centre AURN data", site)]
-t <- sotonAirDT[!is.na(value),.(from = min(dateTimeUTC),
-           to = max(dateTimeUTC),
-           nObs = .N,
+sotonAirDT <- sotonAirDT[obsDate > as.Date("2020-01-01")] # for speed
+```
+
+```{r showSites}
+sotonAirDT[, site := ifelse(site == "Southampton A33", "Southampton A33 (ia AURN)", site)]
+sotonAirDT[, site := ifelse(site == "Southampton Centre", "Southampton Centre (via AURN)", site)]
+t <- sotonAirDT[!is.na(value),.(nObs = .N,
            nPollutants = uniqueN(pollutant)), keyby = .(site, source)]
 
 kableExtra::kable(t, caption = "Dates where data != NA by site and measure",
@@ -277,7 +285,7 @@ p <- makeDotPlot(recentDT,
 p <- p +
   scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
-  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 # final plot - adds annotations
 yMin <- min(recentDT$value)
@@ -310,7 +318,7 @@ p <- makeDotPlot(recentDT,
 p <- p +
   scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
-  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 # final plot - adds annotations
 yMin <- min(recentDT$value)
@@ -345,7 +353,7 @@ p <- makeDotPlot(recentDT,
 p <- p +
   scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
-  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
@@ -376,7 +384,7 @@ p <- makeDotPlot(recentDT,
 p <- p +
   scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
-  labs(caption = paste0(myParams$gamCap, myParams$lockdownCap, myParams$weekendCap))
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
@@ -438,7 +446,7 @@ p <- makeDotPlot(recentDT,
 p <- p +
   scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
-  labs(caption = paste0(myParams$gamCap, myParams$weekendCap, "\nNB: There is no WHO PM2.5 hourly threshold"))
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap, "\nNB: There is no WHO PM2.5 hourly threshold"))
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
