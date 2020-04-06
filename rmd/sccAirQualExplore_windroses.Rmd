@@ -1,0 +1,173 @@
+---
+params:
+  title: ''
+  subtitle: ''
+  authors: ''
+title: '`r params$title`'
+subtitle: '`r params$subtitle`'
+author: '`r params$authors`'
+date: 'Last run at: `r getRunDateTime()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    fig_width: 5
+always_allow_html: yes
+bibliography: '`r path.expand("~/bibliography.bib")`'
+---
+
+```{r knitrSetUp, include=FALSE}
+
+# Set knitr options
+knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what is happening
+                      warning = FALSE,
+                      message = FALSE,
+                      fig_caption = TRUE,
+                      fig_height = 6,        # default, make it bigger to stretch vertical axis
+                      fig_width = 8,
+                      fig_width = 8,         # full width
+                      tidy = TRUE)           # tidy up code in case echo = TRUE
+
+```
+
+
+```{r codeSetup, include=FALSE}
+
+# Load Packages ----
+rmdLibs <- c("openair")
+
+dkUtils::loadLibraries(rmdLibs)
+
+# Adjust knitr options if required
+knitr::opts_chunk$set(echo = TRUE)
+
+# Log compile time:
+myParams$startTime <- proc.time()
+
+# Parameters ----
+# set xlim for plotly to reduce plot size & load speed
+myParams$xlimMinDateTime <- lubridate::as_datetime("2018-01-01 00:00:00")
+myParams$xlimMaxDateTime <- lubridate::as_datetime("2020-06-01 00:00:00")
+myParams$xlimMinDate <- lubridate::as_date("2018-01-01")
+myParams$xlimMaxDate <- lubridate::as_date("2020-06-01")
+
+myParams$oneYearAgo <- lubridate::as_datetime(now() - (365*24*60*60))
+
+# set values for annotations
+myParams$lockDownStartDate <- as.Date("2020-03-24")
+myParams$lockDownStartDateTime <- lubridate::as_datetime("2020-03-24 00:00:00")
+myParams$lockDownEndDate <- lubridate::today()
+myParams$lockDownEndDateTime <- lubridate::now()
+
+myParams$recentCutDate <- lubridate::as_date("2020-03-01")
+
+myParams$gamCap <- "Trend line = Generalized additive model (gam) with integrated smoothness estimation"
+myParams$lockdownCap <- "\nColoured rectangle = UK covid lockdown to date"
+myParams$weekendCap <- "\nShaded rectangle = weekends"
+
+myParams$myAlpha <- 0.1
+myParams$vLineAlpha <- 0.4
+myParams$vLineCol <- "red" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+myParams$myTextSize <- 4
+
+
+```
+
+# About
+
+## Code
+
+ * https://github.com/CfSOtago/airQual/commits/master
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
+
+## Disclaimer
+
+> I usually do energy demand research but in the absence of access to real time demand data on lockdown (unlike during the [World Cup](http://www.energy.soton.ac.uk/the-end-of-the-world-cup/)) I'm looking at other things.
+ 
+# Introduction
+
+Data for Southampton downloaded from :
+
+ * [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). 
+ 
+The data that goes to AURN is then [ratifified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process.
+
+# Wind roses
+
+We use the excellent openair package [@openair] to download the AURN data and create the wind and pollution roses for each site.
+
+```{r prepData}
+
+years <- c("2016", "2017", "2018","2019","2020")
+sites <- c("SA33", "SOUT")
+
+for(y in years){
+  
+  # wide form
+  for(s in sites){
+    df <- openair::importAURN(
+      site = s,
+      year = y,
+      pollutant = "all",
+      hc = FALSE,
+      to_narrow = FALSE, # produces wide form data
+      verbose = TRUE
+    )
+
+    # make a compass rose for this site for this year
+    message("Wind rose: ", y, " (Southampton - ", s, ")")
+    lab <- paste0("Southampton: ", s, " (",y,")")
+    openair::windRose(df , key.header = paste0("Southampton site: ", s, " (",y,")"))
+    message("Pollution rose: ", y, " (Southampton - ", s, ")")
+    openair::pollutionRose(df, key.header = paste0("Southampton site: ", s, " (",y,")"))
+  }
+
+}
+
+# done ----
+
+```
+
+
+# Runtime
+
+Report generated using [knitr](https://cran.r-project.org/package=knitr) in [RStudio](http://www.rstudio.com) with `r R.version.string` running on `r R.version$platform` (`r Sys.info()[3]`).
+
+```{r check runtime}
+t <- proc.time() - myParams$startTime
+
+elapsed <- t[[3]]
+```
+
+Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
+
+R packages used:
+
+ * here - [@here]
+ * openair - [@openair]
+            
+# References
+
