@@ -2,7 +2,9 @@
 
 Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
 
-### Southampton (UK) lockdown analysis
+### Southampton (UK) 
+
+#### Lockdown analysis
 
 We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html) on a regular basis. These are the most recent plots for:
 
@@ -15,6 +17,19 @@ We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplor
 
 NB: The AURN data used above is not yet  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) as it less than 6 months old.
 
+## General explorations
+
+See https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/
+
+Southampton homes are much less likely to use solid fuel heating. Instead they tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0007&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers are known sources of Nitrogen Dioxide so heating systems may also be a contributor to poort air quality in Southampton alongside fossil-fuel based transport.
+
+ * Data sources: [http://southampton.my-air.uk/](http://southampton.my-air.uk/) and also http://uk-air.defra.gov.uk/openair/R_data/ using `ōpenair::importAURN()`.
+ * [Initial exploratory analysis](sccAirQualExplore_Exploring the data.html) - simple & interactive plots, can be slow to load; just uses southampton.my-air.uk
+ * [Further exploratory analysis](sccAirQualExploreAURN.html) - uses the excellent [openair](http://davidcarslaw.github.io/openair/) R package
+ * [Further exploratory analysis](sccAirQualExplore_Exploring the SSC and AURN data.html) - uses AURN data downloaded via the excellent [openair](http://davidcarslaw.github.io/openair/) R package and SSC data. They mostly agree...
+ * [extracting data](sccAirQualDataExtract_Extracting data for modelling.html) for modelling & forecasting
+ * [wind and pollution roses](sccAirQualExplore_windroses_Wind and pollution roses 2016-2020 (AURN data).html) using the excellent [openair](http://davidcarslaw.github.io/openair/) R package and AURN data.
+ 
 ### New Zealand
 
 See https://www.mfe.govt.nz/air
@@ -30,16 +45,6 @@ Of course, as elsewhere, fossil-fuel based transport is also a major contributor
  * [Initial exploratory analysis](nzAirQualExplore.html) (does not yet use the excellent [openair](http://davidcarslaw.github.io/openair/) R package)
  * [Focus on Dunedin](???)
 
-### Southampton (UK)
-
-See https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/
-
-Southampton homes are much less likely to use solid fuel heating. Instead they tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0007&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers are known sources of Nitrogen Dioxide so heating systems may also be a contributor to poort air quality in Southampton alongside fossil-fuel based transport.
-
- * Data sources: [http://southampton.my-air.uk/](http://southampton.my-air.uk/) and also http://uk-air.defra.gov.uk/openair/R_data/ using `ōpenair::importAURN()`.
- * [Initial exploratory analysis](sccAirQualExplore_Exploring the data.html) - simple & interactive plots, can be slow to load; just uses southampton.my-air.uk
- * [Further exploratory analysis](sccAirQualExploreAURN.html) - uses the excellent [openair](http://davidcarslaw.github.io/openair/) R package
- * [Further exploratory analysis](sccAirQualExplore_Exploring the SSC and AURN data.html) - uses AURN data downloaded via the excellent [openair](http://davidcarslaw.github.io/openair/) R package and SSC data. They mostly agree...
   
 ### Comparative
 

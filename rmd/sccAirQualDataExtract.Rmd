@@ -424,6 +424,12 @@ f <- paste0(here::here(), "/data/sotonExtract2018_2020.csv")
 data.table::fwrite(aurnDT, f)
 ```
 
+Saved data description:
+
+```{r dataDesc}
+skimr::skim(aurnDT)
+```
+
 # Annex
 
 # Runtime

@@ -103,27 +103,10 @@ lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
 # Wind Direction
 # Wind Speed
 # > SSC data ----
-files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.gz", full.names = TRUE)
-filesDT <- data.table::as.data.table(files)
-filesDT <- filesDT[files %like% "long"]
-l <- lapply(filesDT, data.table::fread)
-origAURNDataDT <- rbindlist(l, fill = TRUE) # rbind them
+files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.csv.gz", full.names = TRUE)
+l <- lapply(files, data.table::fread)
+aurnDT <- rbindlist(l, fill = TRUE) # rbind them
 
-origAURNDataDT$MeasurementDateGMT <- NULL # not needed
-origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
-l <- NULL # not needed
-
-lDT <- data.table::melt(origDataDT,
-                        id.vars=c("site","dateTimeUTC"),
-                        measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
-                        value.name = "value" # varies 
-)
-
-lDT[, obsDate := lubridate::date(dateTimeUTC)]
-
-aurnDT <- data.table::fread(paste0(myParams$aurnDataPath, 
-                            "processed/AURN_SSC_sites_hourlyAirQual_processed.csv.gz")
-                            )
 aurnDT[, dateTimeUTC := lubridate::as_datetime(date)]
 aurnDT[, obsDate := lubridate::date(dateTimeUTC)]
 aurnDT[, source := "AURN"]
@@ -157,14 +140,14 @@ doReport <- function(rmd){
 myParams$title <- "Air Quality in Southampton (UK)"
 myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 
-#myParams$rmd <- "sccAirQualDataExtract" 
-#myParams$subtitle <- "Extracting data for modelling"
+myParams$rmd <- "sccAirQualDataExtract" 
+myParams$subtitle <- "Extracting data for modelling"
 
-#myParams$rmd <- "sccAirQualExplore_lockdown" 
-#myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
+# myParams$rmd <- "sccAirQualExplore_lockdown"
+# myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 
-myParams$rmd <- "sccAirQualExplore_windroses" 
-myParams$subtitle <- "Wind and pollution roses 2016-2020 (AURN data)"
+# myParams$rmd <- "sccAirQualExplore_windroses" 
+# myParams$subtitle <- "Wind and pollution roses 2016-2020 (AURN data)"
 
 # filter the data here
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
