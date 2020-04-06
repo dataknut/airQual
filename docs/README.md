@@ -1,6 +1,6 @@
 ## airQual: exploration of air quality data
 
-Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html).
+Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html). it is also a useful indicator of traffic and other combustion patterns - i.e. energy use at different times of day.
 
 ### Southampton (UK) 
 
