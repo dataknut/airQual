@@ -105,19 +105,24 @@ This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southam
 
 ## Disclaimer
 
-> I usually do energy demand research but in the absence of access to real time demand data on lockdown (unlike during the [World Cup](http://www.energy.soton.ac.uk/the-end-of-the-world-cup/)) I'm looking at other things.
+I usually do energy demand research but in the absence of access to real time energy demand data on lockdown (unlike during the [World Cup](http://www.energy.soton.ac.uk/the-end-of-the-world-cup/)), I'm looking at other things.
  
 # Introduction
 
-Data for Southampton downloaded from :
+This analysis uses data for Southampton downloaded from:
 
- * [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). 
+ * [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn)
  
-The data that goes to AURN is then [ratifified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process.
+> The data supplied to AURN by UK monitoring sites such as the ones in Southampton is  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. However, AURN data less than six months old has not undergone this process. Be warned.
 
 # Wind roses
 
-We use the excellent openair package [@openair] to download the AURN data and create the wind and pollution roses for each site.
+We use the excellent openair package [@openair] to download the AURN data and create the wind and pollution roses for each of the following Southampton sites:
+
+ * [SA33](https://uk-air.defra.gov.uk/networks/site-info?site_id=SA33&view=View) - A33 near docks
+ * [SOUT](https://uk-air.defra.gov.uk/networks/site-info?site_id=SOUT&view=View) - City Centre
+
+Year and site is given in the legend label.
 
 ```{r prepData}
 

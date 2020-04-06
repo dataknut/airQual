@@ -48,9 +48,8 @@ myParams$sccDataPath <- path.expand("~/Data/SCC/airQual/direct/")
 myParams$aurnDataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 
 # Load data ----
-# data files
+# > SSC data ----
 files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
-# > load SSC as a list ----
 l <- lapply(files, data.table::fread)
 origDataDT <- rbindlist(l, fill = TRUE) # rbind them
 
@@ -103,6 +102,25 @@ lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
 # Volatile PM2.5 (Hourly measured)
 # Wind Direction
 # Wind Speed
+# > SSC data ----
+files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.gz", full.names = TRUE)
+filesDT <- data.table::as.data.table(files)
+filesDT <- filesDT[files %like% "long"]
+l <- lapply(filesDT, data.table::fread)
+origAURNDataDT <- rbindlist(l, fill = TRUE) # rbind them
+
+origAURNDataDT$MeasurementDateGMT <- NULL # not needed
+origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
+l <- NULL # not needed
+
+lDT <- data.table::melt(origDataDT,
+                        id.vars=c("site","dateTimeUTC"),
+                        measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
+                        value.name = "value" # varies 
+)
+
+lDT[, obsDate := lubridate::date(dateTimeUTC)]
+
 aurnDT <- data.table::fread(paste0(myParams$aurnDataPath, 
                             "processed/AURN_SSC_sites_hourlyAirQual_processed.csv.gz")
                             )
