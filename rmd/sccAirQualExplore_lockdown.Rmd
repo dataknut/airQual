@@ -677,8 +677,9 @@ Save long form data to [data](../data/) folder.
 
 ```{r saveData}
 fixedDT[, weekDay := lubridate::wday(dateTimeUTC, label = TRUE, abbr = TRUE)]
-f <- paste0(here::here(), "/data/sotonExtract2018_2020_v2.csv")
+f <- paste0(here::here(), "/data/sotonExtract2017_2020_v2.csv")
 data.table::fwrite(fixedDT, f)
+dkUtils::gzipIt(f)
 ```
 
 Saved data description:
