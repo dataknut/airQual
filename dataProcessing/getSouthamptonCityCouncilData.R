@@ -18,7 +18,8 @@ library(lubridate)
 
 # > years ----
 #"2016", "2017", "2018", 
-years <- c("2016", "2017", "2018","2020")
+years <- c("2020")
+upTo <- lubridate::today()
 
 # > locations ----
 locs <- list()
@@ -45,6 +46,7 @@ locs$es3 <- "Eastleigh - The Point (Centre)"
 baseUrl <- "http://southampton.my-air.uk/singlela/relay/access.php?data=graph-data"
 dataPath <- path.expand("~/Data/SCC/airQual/direct/")
 
+dataDT <- data.table::data.table() # data bucket
 
 # Functions ----
 refreshData <- function(years){
@@ -136,28 +138,27 @@ refreshData <- function(years){
         #dt[, pm2_5 := `Southampton Background AURN: PM2.5 Particulate (ug/m3)`]
         #dt[, so2 := `Southampton - Victoria Road: Sulphur Dioxide (ug/m3)`]
         dt[, site := locs$sh5]
-        dt <- dt[, .(site, MeasurementDateGMT, no, no2, nox)]
+        dt[, .(site, MeasurementDateGMT, no, no2, nox)]
       }
       dt[, dateTimeUTC := lubridate::ymd_hm(MeasurementDateGMT)] # makes life so much easier later
       pf <- paste0(dataPath,"processed/", y, "_SSC_site_", s, "_hourlyAirQual_processed.csv")
       data.table::fwrite(dt, file = pf)
       dkUtils::gzipIt(pf)
     }
+    dataDT <- rbind(dataDT, dt, fill = TRUE)
   }
-  return(dt)
+  return(dataDT)
 }
 
-dt <- refreshData(years) # only returns the last one downloaded
+sotonRawDT <- refreshData(years) # only returns the last one downloaded
 
-# feedback
+summary(sotonRawDT[!is.na(no2)])
 
-skimr::skim(dt)
+# Last data entry:
+lastData <- max(sotonRawDT[!is.na(no2), (dateTimeUTC)])
+lastData
 
-# dates without missing data (why does it send all possible dates as empty rows??
-min(dt[!is.na(no), dateTimeUTC])
-max(dt[!is.na(no), dateTimeUTC])
-# how long ago last data?
-now() - max(dt[!is.na(no), dateTimeUTC])
+now() - lastData
 
 # done ----
         

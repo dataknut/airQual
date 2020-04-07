@@ -23,7 +23,8 @@ sites <- c("SA33", "SOUT")
 # get data ----
 lyearDT <- data.table::data.table()
 wyearDT <- data.table::data.table()
-
+aurnRawDT <- data.table::data.table()
+  
 for(y in years){
   # long form
   for(s in sites){
@@ -58,8 +59,18 @@ for(y in years){
   of <- paste0(dataPath,"processed/AURN_SSC_sites_hourlyAirQual_processed_", y,"_wide.csv")
   data.table::fwrite(wyearDT, file = of)
   dkUtils::gzipIt(of)
+  aurnRawDT <- rbind(aurnRawDT, lyearDT)
   wyearDT <- NULL
   lyearDT <- NULL
 }
+
+aurnRawDT[, obsDateTimeUTC := lubridate::as_datetime(date)]
+summary(aurnRawDT)
+
+# Last data entry:
+lastData <- max(aurnRawDT[!is.na(value), (obsDateTimeUTC)])
+lastData
+
+now() - lastData
 
 # done ----
