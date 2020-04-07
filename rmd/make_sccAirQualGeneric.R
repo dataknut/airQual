@@ -102,7 +102,7 @@ lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
 # Volatile PM2.5 (Hourly measured)
 # Wind Direction
 # Wind Speed
-# > SSC data ----
+
 files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.csv.gz", full.names = TRUE)
 l <- lapply(files, data.table::fread)
 aurnDT <- rbindlist(l, fill = TRUE) # rbind them
@@ -140,11 +140,11 @@ doReport <- function(rmd){
 myParams$title <- "Air Quality in Southampton (UK)"
 myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 
-myParams$rmd <- "sccAirQualDataExtract" 
-myParams$subtitle <- "Extracting data for modelling"
+# myParams$rmd <- "sccAirQualDataExtract" 
+# myParams$subtitle <- "Extracting data for modelling"
 
-# myParams$rmd <- "sccAirQualExplore_lockdown"
-# myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
+myParams$rmd <- "sccAirQualExplore_lockdown"
+myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 
 # myParams$rmd <- "sccAirQualExplore_windroses" 
 # myParams$subtitle <- "Wind and pollution roses 2016-2020 (AURN data)"
