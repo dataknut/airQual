@@ -17,7 +17,7 @@ We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplor
 
 NB: The AURN data used above is not yet  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) as it less than 6 months old.
 
-## General explorations
+#### General explorations
 
 See https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/
 
