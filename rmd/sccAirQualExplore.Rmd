@@ -533,9 +533,6 @@ p <- makeDotPlot(dt,
                  byVar = "site", 
                  yLab = yLab)
 
-p <- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) +
-  labs(caption = "Reference line = WHO hourly threshold")
-
 
 p <- p +
   geom_smooth() + # add smoothed line
