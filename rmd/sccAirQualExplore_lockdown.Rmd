@@ -135,6 +135,30 @@ compareYearsPlot <- function(dt, xVar, colVar){
   return(p)
 }
 
+profileTilePlot <- function(dt, yLab){
+  p <- ggplot2::ggplot(dt, aes(x = obsDate,
+                                     y = time, 
+                                     fill = value)) +
+    geom_tile() +
+    scale_fill_continuous(low = "green", high = "red") +
+    labs(x= "Date",
+         y = "Time",
+         fill = yLab) +
+    theme(legend.position="bottom") +
+    facet_grid(site ~ .)
+  
+  p <- p +
+    scale_x_date(date_breaks = "2 day", date_labels =  "%a %d %b")  +
+    theme(axis.text.x=element_text(angle=90, hjust=1)) +
+    theme(strip.text.y.right = element_text(angle = 0, size = 7))
+  # final plot - adds annotations
+  yMin <- min(recentDT$time)
+  yMax <- max(recentDT$time)
+  p <- addLockdownDate(p)
+  addWeekendsDate(p)
+  return(p)
+}
+
 addLockdownDate <- function(p){
   # assumes p has x = obsDate
   # p <- p + annotate("text", x = myParams$lockDownStartDate, 
@@ -188,6 +212,10 @@ addWeekendsDate <- function(p){
                     xmax = as.Date("2020-04-05"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-04-10"),
+                    xmax = as.Date("2020-04-13"), # Easter
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
 }
 
@@ -210,6 +238,10 @@ addWeekendsDateTime <- function(p){
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-04-04 00:00:00"),
                     xmax = lubridate::as_datetime("2020-04-05 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill) 
+  p <- p + annotate("rect", xmin = as_datetime("2020-04-10 00:00:00"),
+                    xmax = as_datetime("2020-04-13 23:59:59"), # Easter
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
@@ -242,8 +274,8 @@ sotonAirDT[, year := lubridate::year(dateTimeUTC)]
 sotonAirDT[, origDoW := lubridate::wday(dateTimeUTC, label = TRUE)]
 sotonAirDT[, month := lubridate::month(obsDate)]
 
-sotonAirDT[, site := ifelse(site == "Southampton A33", "Southampton A33 (via AURN)", site)]
-sotonAirDT[, site := ifelse(site == "Southampton Centre", "Southampton Centre (via AURN)", site)]
+sotonAirDT[, site := ifelse(site == "Southampton A33", "Southampton A33\n(via AURN)", site)]
+sotonAirDT[, site := ifelse(site == "Southampton Centre", "Southampton Centre\n(via AURN)", site)]
 
 extractDT <- sotonAirDT[!is.na(value)] # leave out 2016 so we compare with previous 3 years
 
@@ -380,6 +412,15 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p) + guides(colour=guide_legend(ncol=2))
 ```
 
+Figure \@ref(fig:no2recentProfile) shows the most recent hourly data by date and time of day.
+
+```{r no2recentProfile, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
 Figure \@ref(fig:no2compare) shows the most recent mean daily values compared to previous years. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.
 
 ```{r no2compare, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean)"}
@@ -436,6 +477,15 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p)
 ```
 
+Figure \@ref(fig:noxrecentProfile) shows the most recent hourly data by date and time of day.
+
+```{r noxrecentProfile, fig.cap="Oxides of nitrogen levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
 Figure \@ref(fig:noxcompare) shows the most recent mean daily values compared to previous years.
 
 ```{r noxcompare, fig.cap="Oxides of nitrogen levels, Southampton (daily mean)"}
@@ -486,9 +536,19 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p)
 ```
 
+Figure \@ref(fig:so2recentProfile) shows the most recent hourly data by date and time of day and time of day.
+
+```{r so2recentProfile, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
+
 Figure \@ref(fig:so2compare) shows the most recent mean daily values compared to previous years.
 
-```{r so2compare, fig.cap="Oxides of nitrogen levels, Southampton (daily mean)"}
+```{r so2compare, fig.cap="Sulphour dioxide levels, Southampton (daily mean)"}
 
 plotDT <- so2dt[fixedDate <= lubridate::today() & 
                   fixedDate >= myParams$comparePlotCut , 
@@ -539,9 +599,19 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p)
 ```
 
+Figure \@ref(fig:o3recentProfile) shows the most recent hourly data by date and time of day.
+
+```{r o3recentProfile, fig.cap="Ozone levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
+
 Figure \@ref(fig:o3compare) shows the most recent mean daily values compared to previous years.
 
-```{r o3compare, fig.cap="Oxides of nitrogen levels, Southampton (daily mean)"}
+```{r o3compare, fig.cap="Ozone levels, Southampton (daily mean)"}
 
 plotDT <- o3dt[fixedDate <= lubridate::today() & 
                   fixedDate >= myParams$comparePlotCut , 
@@ -593,9 +663,19 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p)
 ```
 
+Figure \@ref(fig:pm10recentProfile) shows the most recent hourly data by date and time of day.
+
+```{r pm10recentProfile, fig.cap="PM10 levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
+
 Figure \@ref(fig:pm10compare) shows the most recent mean daily values compared to previous years.
 
-```{r pm10compare, fig.cap="Oxides of nitrogen levels, Southampton (daily mean)"}
+```{r pm10compare, fig.cap="PM10 levels, Southampton (daily mean)"}
 
 plotDT <- pm10dt[fixedDate <= lubridate::today() & 
                   fixedDate >= myParams$comparePlotCut , 
@@ -646,9 +726,18 @@ p <- addLockdownDateTime(p)
 addWeekendsDateTime(p)
 ```
 
+Figure \@ref(fig:pm25recentProfile) shows the most recent hourly data by date and time of day.
+
+```{r pm25recentProfile, fig.cap="PM2.5 levels, Southampton (hourly, recent)"}
+recentDT[, time := hms::as_hms(dateTimeUTC)]
+
+profileTilePlot(recentDT, yLab)
+
+```
+
 Figure \@ref(fig:pm25compare) shows the most recent mean daily values compared to previous years.
 
-```{r pm25compare, fig.cap="Oxides of nitrogen levels, Southampton (daily mean)"}
+```{r pm25compare, fig.cap="PM2.5 levels, Southampton (daily mean)"}
 
 plotDT <- pm25dt[fixedDate <= lubridate::today() & 
                   fixedDate >= myParams$comparePlotCut , 
