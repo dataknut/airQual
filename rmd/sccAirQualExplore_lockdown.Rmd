@@ -152,10 +152,7 @@ profileTilePlot <- function(dt, yLab){
     theme(axis.text.x=element_text(angle=90, hjust=1)) +
     theme(strip.text.y.right = element_text(angle = 0, size = 7))
   # final plot - adds annotations
-  yMin <- min(recentDT$time)
-  yMax <- max(recentDT$time)
   p <- addLockdownDate(p)
-  addWeekendsDate(p)
   return(p)
 }
 
@@ -416,9 +413,11 @@ Figure \@ref(fig:no2recentProfile) shows the most recent hourly data by date and
 
 ```{r no2recentProfile, fig.cap="Nitrogen Dioxide levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
-
-profileTilePlot(recentDT, yLab)
-
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 Figure \@ref(fig:no2compare) shows the most recent mean daily values compared to previous years. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.
@@ -481,8 +480,11 @@ Figure \@ref(fig:noxrecentProfile) shows the most recent hourly data by date and
 
 ```{r noxrecentProfile, fig.cap="Oxides of nitrogen levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
-
-profileTilePlot(recentDT, yLab)
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
 
@@ -541,8 +543,11 @@ Figure \@ref(fig:so2recentProfile) shows the most recent hourly data by date and
 ```{r so2recentProfile, fig.cap="Sulphour Dioxide levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
 
-profileTilePlot(recentDT, yLab)
-
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 
@@ -604,8 +609,11 @@ Figure \@ref(fig:o3recentProfile) shows the most recent hourly data by date and 
 ```{r o3recentProfile, fig.cap="Ozone levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
 
-profileTilePlot(recentDT, yLab)
-
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 
@@ -668,8 +676,11 @@ Figure \@ref(fig:pm10recentProfile) shows the most recent hourly data by date an
 ```{r pm10recentProfile, fig.cap="PM10 levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
 
-profileTilePlot(recentDT, yLab)
-
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 
@@ -731,8 +742,11 @@ Figure \@ref(fig:pm25recentProfile) shows the most recent hourly data by date an
 ```{r pm25recentProfile, fig.cap="PM2.5 levels, Southampton (hourly, recent)"}
 recentDT[, time := hms::as_hms(dateTimeUTC)]
 
-profileTilePlot(recentDT, yLab)
-
+yMin <- min(recentDT$time)
+yMax <- max(recentDT$time)
+p <- profileTilePlot(recentDT, yLab)
+addWeekendsDate(p) + 
+  labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 Figure \@ref(fig:pm25compare) shows the most recent mean daily values compared to previous years.
