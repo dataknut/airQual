@@ -25,7 +25,7 @@ Southampton homes are much less likely to use solid fuel heating. Instead they t
 Data sources: 
  
  * Directly: from [http://southampton.my-air.uk/](http://southampton.my-air.uk/) although this site is now mostly inactive. Plots and data also available from http://www.hantsair.org.uk/hampshire/asp/home.asp?la=Southampton;
- * Indirectly: Two of the above sites also feed to http://uk-air.defra.gov.uk/openair/R_data/ and can be downloaded using `ōpenair::importAURN()`. We explain which source we use when and why in the analysis.
+ * Indirectly: Two of the Southampton sites also feed to http://uk-air.defra.gov.uk/openair/R_data/ and the data can be downloaded using `ōpenair::importAURN()`. We explain which source we use when and why in the analysis.
  
  
 NB: The AURN data undergoes a processes of  [ratification](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) with a lagof about 6 months. Data less than 6 months old will not have undergone this process.
