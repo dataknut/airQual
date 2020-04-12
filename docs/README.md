@@ -15,7 +15,6 @@ We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplor
  * PM10 [plot](sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html#fig:pm10recent): as for NO2 but less noticeable the week before lockdown. But also possibly weather effect?
  * PM2.5 [plot](sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html#fig:pm25recent): much more obvious lockdown but not pre-lockdown effect. But also possibly weather effect and even maybe a sensor/measurement effect? The AURN data here has not yet been [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf).
 
-NB: The AURN data used above is not yet  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) as it less than 6 months old.
 
 #### General explorations
 
@@ -28,6 +27,9 @@ Data sources:
  * Directly: from [http://southampton.my-air.uk/](http://southampton.my-air.uk/) although this site is now mostly inactive. Plots and data also available from http://www.hantsair.org.uk/hampshire/asp/home.asp?la=Southampton;
  * Indirectly: Two of the above sites also feed to http://uk-air.defra.gov.uk/openair/R_data/ and can be downloaded using `ōpenair::importAURN()`. We explain which source we use when and why in the analysis.
  
+ 
+NB: The AURN data undergoes a processes of  [ratification](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) with a lagof about 6 months. Data less than 6 months old will not have undergone this process.
+
  Analysis:
  
  * [Initial exploratory analysis](sccAirQualExplore_Exploring the data.html) - simple & interactive plots, can be slow to load; just uses southampton.my-air.uk
