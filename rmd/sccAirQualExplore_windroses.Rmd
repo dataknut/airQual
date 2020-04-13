@@ -46,7 +46,7 @@ knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what 
 ```{r codeSetup, include=FALSE}
 
 # Load Packages ----
-rmdLibs <- c("openair")
+rmdLibs <- c("openair", "skimr")
 
 dkUtils::loadLibraries(rmdLibs)
 
@@ -109,14 +109,6 @@ I usually do energy demand research but in the absence of access to real time en
  
 # Introduction
 
-This analysis uses data for Southampton downloaded from:
-
- * [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn)
- 
-> The data supplied to AURN by UK monitoring sites such as the ones in Southampton is  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. However, AURN data less than six months old has not undergone this process. Be warned.
-
-# Wind roses
-
 We use the excellent openair package [@openair] to download the AURN data and create the wind and pollution roses for each of the following Southampton sites:
 
  * [SA33](https://uk-air.defra.gov.uk/networks/site-info?site_id=SA33&view=View) - A33 near docks
@@ -124,36 +116,99 @@ We use the excellent openair package [@openair] to download the AURN data and cr
 
 Year and site is given in the legend label.
 
+This analysis uses data for Southampton downloaded from:
+
+ * [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn)
+ 
+> The data supplied to AURN by UK monitoring sites such as the ones in Southampton is  [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. However, AURN data less than six months old has not undergone this process. Be warned.
+
+# Data
+
+Downloaded from AURN.
+
+
 ```{r prepData}
 
-years <- c("2016", "2017", "2018","2019","2020")
 sites <- c("SA33", "SOUT")
 
-for(y in years){
-  
+# use:
+# windRose(mydata, type = "year", layout = c(4, 2))
+# https://www.rdocumentation.org/packages/openair/versions/2.7-0
+
+
   # wide form
-  for(s in sites){
-    df <- openair::importAURN(
-      site = s,
-      year = y,
+    df_SA33 <- openair::importAURN(
+      site = "SA33",
+      year = 2000:2020,
       pollutant = "all",
       hc = FALSE,
       to_narrow = FALSE, # produces wide form data
       verbose = TRUE
     )
+  
+    df_SOUT <- openair::importAURN(
+      site = "SOUT",
+      year = 2000:2020,
+      pollutant = "all",
+      hc = FALSE,
+      to_narrow = FALSE, # produces wide form data
+      verbose = TRUE
+    )
+```
 
-    # make a compass rose for this site for this year
-    message("Wind rose: ", y, " (Southampton - ", s, ")")
-    lab <- paste0("Southampton: ", s, " (",y,")")
-    openair::windRose(df , key.header = paste0("Southampton site: ", s, " (",y,")"))
-    message("Pollution rose: ", y, " (Southampton - ", s, ")")
-    openair::pollutionRose(df, key.header = paste0("Southampton site: ", s, " (",y,")"))
-  }
 
-}
+# Site: SA33
 
-# done ----
+A33 - near docks: [map](https://uk-air.defra.gov.uk/networks/site-info?site_id=SA33&view=View)
 
+```{r descSA33}
+
+skimr::skim(df_SA33)
+```
+
+## Wind roses
+
+```{r windRoseSA33}
+# make a compass rose for this site for this year
+openair::windRose(df_SA33, type = "year", 
+                              key.header = paste0("Southampton site: ", s),
+                              layout = c(3,2))
+```
+
+## Pollution roses
+
+```{r pollutionRoseSA33}
+# make a compass rose for this site for this year
+openair::pollutionRose(df_SA33, type = "year", 
+                              key.header = paste0("Southampton site: ", s),
+                              layout = c(3,2))
+```
+
+# Site: SOUT
+
+City centre: [map](https://uk-air.defra.gov.uk/networks/site-info?site_id=SOUT&view=View)
+
+```{r descSOUT}
+
+skimr::skim(df_SOUT)
+```
+
+## Wind roses
+
+```{r windRoseSOUT}
+# make a compass rose for this site for this year
+openair::windRose(df_SOUT, type = "year", 
+                              key.header = paste0("Southampton site: ", s),
+                              layout = c(3,2))
+```
+
+## Pollution roses
+
+```{r pollutionRoseSOUT}
+# make a compass rose for this site for this year
+openair::pollutionRose(df_SOUT, type = "year", 
+                              key.header = paste0("Southampton site: ", s),
+                              layout = c(3,2))
 ```
 
 
