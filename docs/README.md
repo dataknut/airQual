@@ -1,10 +1,10 @@
 ## airQual: exploration of air quality data
 
-Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html). it is also a useful indicator of traffic and other combustion patterns - i.e. energy use at different times of day.
+Poor air quality is well known to have both chronic (long term) and acute (short term) impacts on [health](http://www.erg.kcl.ac.uk/Research/home/projects/personalised-health-impacts.html). Air quality is also a useful indicator of traffic and other combustion patterns - i.e. energy use for different purposes at different times of day.
 
 ### Southampton (UK) 
 
-#### Lockdown analysis
+#### Covid 19 lockdown analysis (Spring 2020)
 
 We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplore_lockdown_Exploring%20the%20effect%20of%20UK%20covid%2019%20lockdown%20on%20air%20quality.html) on a regular basis. These are the most recent plots for:
 
@@ -20,7 +20,7 @@ We update this [mini-report](https://cfsotago.github.io/airQual/sccAirQualExplor
 
 See https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/
 
-Southampton homes are much less likely to use solid fuel heating. Instead they tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0007&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers are known sources of Nitrogen Dioxide so heating systems may also be a contributor to poort air quality in Southampton alongside fossil-fuel based transport.
+Southampton homes tend to rely on reticulated (mains) gas, electricity and in [some areas](https://datashine.org.uk/#table=QS415EW&col=QS415EW0007&ramp=YlOrRd&layers=BTTT&zoom=12&lon=-1.4252&lat=50.9258), district heating. However gas boilers, woodburners and (relatively rare) coal fires are known sources of pollutants so heating systems may also be a contributor to poor air quality in Southampton alongside fossil-fuel based transport.
 
 Data sources: 
  
@@ -28,7 +28,9 @@ Data sources:
  * Indirectly: Two of the Southampton sites also feed to http://uk-air.defra.gov.uk/openair/R_data/ and the data can be downloaded using `ōpenair::importAURN()`. We explain which source we use when and why in the analysis.
  
  
-NB: The AURN data undergoes a processes of  [ratification](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) with a lagof about 6 months. Data less than 6 months old will not have undergone this process.
+NB: The AURN data undergoes a processes of  [ratification](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) with a lag of about 6 months. Data less than 6 months old will not have undergone this process.
+
+AURN data is (c) Crown 2020 copyright Defra via https://uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
 
  Analysis:
  
@@ -42,7 +44,7 @@ NB: The AURN data undergoes a processes of  [ratification](https://uk-air.defra.
 
 See https://www.mfe.govt.nz/air
 
-New Zealand homes use a mixture of solid (coal/wood), electric (fueled by [hydro/coal/gas/geothermal/wind](https://cfsotago.github.io/gridCarbon)) and reticulated (mains) / bottled gas [heating](https://www.branz.co.nz/cms_display.php?st=1&pg=20015&sn=378&forced_id=yes). The prevalance of solid fuels, especially in regions which suffer winter temperature inversions is a particular [problem](https://www.niwa.co.nz/news/students-scientists-citizens-study-arrowtowns-ailing-air).
+In contrast to Southampton, New Zealand homes use a mixture of solid (coal/wood), electric (fueled by [hydro/coal/gas/geothermal/wind](https://cfsotago.github.io/gridCarbon)) and reticulated (mains) / bottled gas [heating](https://www.branz.co.nz/cms_display.php?st=1&pg=20015&sn=378&forced_id=yes). The prevalance of solid fuels, especially in regions which suffer winter temperature inversions is a particular [problem](https://www.niwa.co.nz/news/students-scientists-citizens-study-arrowtowns-ailing-air).
 
 As a result, switching to low emissions forms of heating (electric) and/or increasing insluation (or building to [Passive](https://passivehouse.nz/) house standards) will both reduce GHG emissions and improve air quality. As a consequence [health impacts](https://www.bmj.com/content/334/7591/460.short) and [costs](https://jech.bmj.com/content/63/4/271.short) are reduced - an excellent example of the co-benefits of de-carbonising heat. Rather than [non-energy energy policy](http://www.ukerc.ac.uk/publications/impact-of-non-energy-policies-on-energy-systems.html), we therefore have non-health health policy...
 

@@ -337,7 +337,7 @@ Data for Southampton downloaded from :
  
 Southampton City Council collects various forms of air quality data at the sites shown in Table \@ref(tab:showSites). The data is available in raw form from http://southampton.my-air.uk.
 
-Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). The data that goes via AURN is [ratifified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process.
+Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). The data that goes via AURN is [ratifified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process. AURN data is (c) Crown 2020 copyright Defra via https://uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
 
 Latest data updated:
 
