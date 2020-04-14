@@ -143,11 +143,11 @@ myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 # myParams$rmd <- "sccAirQualDataExtract" 
 # myParams$subtitle <- "Extracting data for modelling"
 
-#myParams$rmd <- "sccAirQualExplore_lockdown"
-#myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
+myParams$rmd <- "sccAirQualExplore_lockdown"
+myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 
-myParams$rmd <- "sccAirQualExplore_windroses" 
-myParams$subtitle <- "Wind and pollution roses 2016-2020 (AURN data)"
+#myParams$rmd <- "sccAirQualExplore_windroses" 
+#myParams$subtitle <- "Wind and pollution roses 2016-2020 (AURN data)"
 
 # filter the data here
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
