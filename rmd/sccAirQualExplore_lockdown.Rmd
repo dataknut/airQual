@@ -513,7 +513,7 @@ addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = "7 day",
                                   date_minor_breaks = "1 day")
 ```
 
-Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show the % difference between the daily  means for 2020 vs 2017-2019 (reference period). In either case we can see that NO2 levels in 2020 were generally _already_ lower than the reference period yet are _not_ consistently lower even during the lockdown period. The effects of covid lockdown are not clear cut...
+Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show the % difference between the daily  means for 2020 vs 2017-2019 (reference period). In both cases we can see that NO2 levels in 2020 were generally _already_ lower than the reference period yet are _not_ consistently lower even during the lockdown period. The effects of covid lockdown are not clear cut...
 
 ```{r no2pcDiffcompareDay, fig.cap="Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
 
@@ -523,7 +523,6 @@ compareYearsDiffPlot(no2dt[fixedDate >= myParams$comparePlotCut]) +
 ```
 
 ```{r no2pcDiffcompareWeek, fig.cap="Percentage difference in weekly mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
-
 compareYearsDiffPlotWeekly(no2dt[fixedDate >= myParams$comparePlotCut]) +
   labs(caption = paste0(myParams$lockdownCap))
 ```
@@ -588,10 +587,12 @@ plotDT <- noxdt[fixedDate <= lubridate::today() &
 yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
-p <- compareYearsPlot(plotDT,xVar = "fixedDate", colVar = "compareYear")
+p <- compareYearsPlot(plotDT,xVar = "fixedDate", 
+                      colVar = "compareYear")
 p <- addLockdownDate(p, yMin, yMax) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,myParams$noThresh))
 addWeekendsDate(p, yMin, yMax)
+
 ```
 
 Figure \@ref(fig:noxpcDiffcompareDay) and \@ref(fig:noxpcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
@@ -604,7 +605,6 @@ compareYearsDiffPlot(noxdt[fixedDate >= myParams$comparePlotCut]) +
 ```
 
 ```{r noxpcDiffcompareWeek, fig.cap="% difference in weekly mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
-
 compareYearsDiffPlotWeekly(noxdt[fixedDate >= myParams$comparePlotCut]) +
   labs(caption = paste0(myParams$lockdownCap))
 ```
@@ -673,19 +673,20 @@ p <- addLockdownDate(p, yMin, yMax) +
 addWeekendsDate(p, yMin, yMax)
 ```
 
+
 Figure \@ref(fig:so2pcDiffcompareDay) and \@ref(fig:so2pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
 
 ```{r so2pcDiffcompareDay, fig.cap="% difference in daily mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
 
 compareYearsDiffPlot(so2dt[fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
-
 ```
 
 ```{r so2pcDiffcompareWeek, fig.cap="% difference in weekly mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
 compareYearsDiffPlotWeekly(so2dt[fixedDate >= myParams$comparePlotCut]) +
   labs(caption = paste0(myParams$lockdownCap))
 ```
+
 > Beware seasonal trends and weather effects
 
 # Ozone
@@ -752,6 +753,7 @@ p <- addLockdownDate(p, yMin, yMax) +
 addWeekendsDate(p, yMin, yMax)
 ```
 
+
 Figure \@ref(fig:o3pcDiffcompareDay) and \@ref(fig:o3pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
 
 ```{r o3pcDiffcompareDay, fig.cap="% difference in daily mean Ozone levels 2020 vs 2017-2019, Southampton"}
@@ -763,10 +765,10 @@ compareYearsDiffPlot(o3dt[fixedDate >= myParams$comparePlotCut]) +
 
 ```{r o3pcDiffcompareWeek, fig.cap="% difference in weekly mean Ozone levels 2020 vs 2017-2019, Southampton"}
 
-
-compareYearsDiffPlotWeekly(o3dt[fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotWeekly(no2dt[fixedDate >= myParams$comparePlotCut]) +
   labs(caption = paste0(myParams$lockdownCap))
 ```
+
 > Beware seasonal trends and weather effects
 
 # PM 10
@@ -832,6 +834,7 @@ p <- addLockdownDate(p, yMin, yMax) +
                         "\nReference line = WHO daily threshold"))
 addWeekendsDate(p, yMin, yMax)
 ```
+
 
 Figure \@ref(fig:pm10pcDiffcompareDay) and \@ref(fig:pm10pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
 
@@ -912,6 +915,7 @@ p <- addLockdownDate(p, yMin, yMax) +
                         "\nReference line = WHO daily threshold"))
 addWeekendsDate(p, yMin, yMax)
 ```
+
 
 Figure \@ref(fig:pm25pcDiffcompareDay) and \@ref(fig:pm25pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
 
