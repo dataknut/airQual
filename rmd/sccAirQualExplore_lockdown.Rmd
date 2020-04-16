@@ -330,7 +330,7 @@ Report circulation:
 
  * Public
  
-This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton.
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://cfsotago.github.io/airQual/) data analyses.
  
 # Introduction
 
