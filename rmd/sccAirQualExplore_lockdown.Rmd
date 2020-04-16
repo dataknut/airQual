@@ -146,11 +146,14 @@ compareYearsDiffPlot <- function(dt){
   
   plotDT <- baseDT[testDT] # auto drops non matches to 2020
   plotDT[, pcDiff := 100*(testVal - baseVal)/baseVal] # -ve value indicates lower
-  
+  plotDT[, pos := ifelse(pcDiff > 0 , "Pos", "Neg")] # want to colour the line sections - how?
   # final plot - adds annotations
   yMin <- min(plotDT$pcDiff)
   yMax <- max(plotDT$pcDiff)
-  p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiff)) +
+  p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiff 
+                                   #color = pos, group=NA)
+                                   )
+                       ) +
     geom_step() +
     scale_x_date(date_breaks = "2 days", date_labels =  "%a %d %b")  +
     theme(axis.text.x=element_text(angle=90, hjust=1, size = 5)) +
@@ -232,7 +235,7 @@ addLockdownDate <- function(p, yMin, yMax){
   #            label = "UK covid lockdown to date", hjust = 0.5)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
              xmax = myParams$lockDownEndDate, 
-             ymin = yMin, ymax = yMax, 
+             ymin = yMin-1, ymax = yMax+1, 
              alpha = myParams$myAlpha, 
              fill = myParams$vLineCol, 
              colour = myParams$vLineCol)
@@ -246,7 +249,7 @@ addLockdownDateTime <- function(p, yMin, yMax){
   #            label = "UK covid lockdown to date", hjust = 0.5)
   p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
              xmax = myParams$lockDownEndDateTime, 
-             ymin = yMin, ymax = yMax, 
+             ymin = yMin-1, ymax = yMax+1, 
              alpha = myParams$myAlpha, 
              fill = myParams$vLineCol, 
              colour = myParams$vLineCol) 
