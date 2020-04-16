@@ -135,6 +135,77 @@ compareYearsPlot <- function(dt, xVar, colVar){
   return(p)
 }
 
+compareYearsDiffPlot <- function(dt){
+  baseDT <- dt[compareYear == "2017-2019", .(baseVal = mean(value)), 
+               keyby = .(fixedDate, fixedDoW, compareYear)]
+  testDT <- dt[compareYear == "2020", .(testVal = mean(value)), 
+               keyby = .(fixedDate, fixedDoW, compareYear)]
+  
+  setkey(baseDT, fixedDate, fixedDoW)
+  setkey(baseDT, fixedDate, fixedDoW)
+  
+  plotDT <- baseDT[testDT] # auto drops non matches to 2020
+  plotDT[, pcDiff := 100*(testVal - baseVal)/baseVal] # -ve value indicates lower
+  
+  # final plot - adds annotations
+  yMin <- min(plotDT$pcDiff)
+  yMax <- max(plotDT$pcDiff)
+  p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiff)) +
+    geom_step() +
+    scale_x_date(date_breaks = "7 day", date_labels =  "%a %d %b")  +
+    theme(axis.text.x=element_text(angle=90, hjust=1)) +
+    labs(x = "Date",
+         y = "% difference 2020 vs mean 2017-2019",
+         caption = paste0(myParams$lockdownCap, myParams$weekendCap)) +  
+    theme(legend.position="bottom") +
+    geom_hline(yintercept = 0, linetype = 3)
+  p <- addLockdownDate(p, yMin, yMax)
+  
+  p <- addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = "7 day",
+                                                date_labels =  "%a %d %b",
+                                                date_minor_breaks = "1 day")
+  return(p)
+}
+
+compareYearsDiffPlotWeekly <- function(dt){
+  dt[, weekNo := lubridate::week(fixedDate)]
+  baseDT <- dt[compareYear == "2017-2019", .(baseVal = mean(value)), 
+               keyby = .(weekNo)]
+  testDT <- dt[compareYear == "2020", .(testVal = mean(value)), 
+               keyby = .(weekNo)]
+  
+  setkey(baseDT, weekNo)
+  setkey(baseDT, weekNo)
+  
+  plotDT <- baseDT[testDT] # auto drops non matches to 2020
+  plotDT[, pcDiff := 100*(testVal - baseVal)/baseVal] # -ve value indicates lower
+  
+  # final plot - adds annotations
+  yMin <- min(plotDT$pcDiff)
+  yMax <- max(plotDT$pcDiff)
+  p <- ggplot2::ggplot(plotDT, aes(x = weekNo, y = pcDiff)) +
+    geom_step() +
+    theme(axis.text.x=element_text(angle=90, hjust=1)) +
+    labs(x = "Week",
+         y = "% difference 2020 vs mean 2017-2019"
+         ) +  
+    theme(legend.position="bottom") +
+    geom_hline(yintercept = 0,linetype = 3)
+  # lubridate::week(as.Date("2020-03-24"))
+  p <- p + annotate("rect", xmin = (lubridate::week(myParams$lockDownStartDate) - 0.1),
+             xmax = (lubridate::week(myParams$lockDownEndDate) + 0.1), 
+             ymin = yMin - 1, ymax = yMax + 1, 
+             alpha = myParams$myAlpha, 
+             fill = myParams$vLineCol, 
+             colour = myParams$vLineCol)
+  #p <- addLockdownDate(p, yMin, yMax)
+  
+  #p <- addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = "7 day",
+   #                                             date_labels =  "%a %d %b",
+    #                                            date_minor_breaks = "1 day")
+  return(p)
+}
+
 profileTilePlot <- function(dt, yLab){
   p <- ggplot2::ggplot(dt, aes(x = obsDate,
                                      y = time, 
@@ -152,11 +223,10 @@ profileTilePlot <- function(dt, yLab){
     theme(axis.text.x=element_text(angle=90, hjust=1)) +
     theme(strip.text.y.right = element_text(angle = 0, size = 7))
   # final plot - adds annotations
-  p <- addLockdownDate(p)
   return(p)
 }
 
-addLockdownDate <- function(p){
+addLockdownDate <- function(p, yMin, yMax){
   # assumes p has x = obsDate
   # p <- p + annotate("text", x = myParams$lockDownStartDate, 
   #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
@@ -170,7 +240,7 @@ addLockdownDate <- function(p){
   return(p)
 }
 
-addLockdownDateTime <- function(p){
+addLockdownDateTime <- function(p, yMin, yMax){
   # assumes p has x = obsDateTime
   # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
   #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
@@ -188,7 +258,7 @@ addLockdownDateTime <- function(p){
 # only makes sense to use these for x axis covering March onwards
 myParams$weAlpha <- 0.3
 myParams$weFill <- "grey50"
-addWeekendsDate <- function(p){
+addWeekendsDate <- function(p, yMin, yMax){
   p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
                     xmax = as.Date("2020-03-08"),
                     ymin = yMin, ymax = yMax,
@@ -216,7 +286,7 @@ addWeekendsDate <- function(p){
   return(p)
 }
 
-addWeekendsDateTime <- function(p){
+addWeekendsDateTime <- function(p, yMin, yMax){
    p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-07 00:00:00"),
                     xmax = lubridate::as_datetime("2020-03-08 23:59:59"),
                     ymin = yMin, ymax = yMax,
@@ -405,8 +475,8 @@ p <- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) +
 yMin <- min(recentDT$value)
 yMax <- max(recentDT$value)
 
-p <- addLockdownDateTime(p)
-addWeekendsDateTime(p) + guides(colour=guide_legend(ncol=2))
+p <- addLockdownDateTime(p, yMin, yMax)
+addWeekendsDateTime(p,yMin, yMax) + guides(colour=guide_legend(ncol=2))
 ```
 
 Figure \@ref(fig:no2recentProfile) shows the most recent hourly data by date and time of day.
@@ -416,13 +486,14 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+p <- addLockdownDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
 Figure \@ref(fig:no2compare) shows the most recent mean daily values compared to previous years. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.
 
-```{r no2compare, fig.cap="Nitrogen Dioxide levels, Southampton (daily mean)"}
+```{r no2compare, fig.cap="Comparative Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton (daily mean)"}
 plotDT <- no2dt[fixedDate <= lubridate::today() & 
                   fixedDate >= myParams$comparePlotCut , 
                 .(mean = mean(value),
@@ -434,12 +505,27 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap, myParams$noThresh))
 
-addWeekendsDate(p) + scale_x_date(date_breaks = "7 day",
+addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = "7 day",
                                   date_labels =  "%a %d %b",
                                   date_minor_breaks = "1 day")
+```
+
+Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show the % difference between the daily  means for 2020 vs 2017-2019 (reference period). In either case we can see that NO2 levels in 2020 were generally _already_ lower than the reference period yet are _not_ consistently lower even during the lockdown period. The effects of covid lockdown are not clear cut...
+
+```{r no2pcDiffcompareDay, fig.cap="Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(no2dt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r no2pcDiffcompareWeek, fig.cap="Percentage difference in weekly mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlotWeekly(no2dt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
 ```
 
 > Beware seasonal trends and weather effects
@@ -471,9 +557,9 @@ p <- p +
 yMin <- min(recentDT$value)
 yMax <- max(recentDT$value)
 
-p <- addLockdownDateTime(p)
+p <- addLockdownDateTime(p, yMin, yMax)
 
-addWeekendsDateTime(p)
+addWeekendsDateTime(p, yMin, yMax)
 ```
 
 Figure \@ref(fig:noxrecentProfile) shows the most recent hourly data by date and time of day.
@@ -483,7 +569,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
@@ -503,11 +589,25 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT,xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,myParams$noThresh))
-addWeekendsDate(p)
+addWeekendsDate(p, yMin, yMax)
 ```
 
+Figure \@ref(fig:noxpcDiffcompareDay) and \@ref(fig:noxpcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
+
+```{r noxpcDiffcompareDay, fig.cap="% difference in daily mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(noxdt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r noxpcDiffcompareWeek, fig.cap="% difference in weekly mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlotWeekly(noxdt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
+```
 
 # Sulphour Dioxide
 
@@ -534,8 +634,8 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p)
-addWeekendsDateTime(p)
+p <- addLockdownDateTime(p, yMin, yMax)
+addWeekendsDateTime(p, yMin, yMax)
 ```
 
 Figure \@ref(fig:so2recentProfile) shows the most recent hourly data by date and time of day and time of day.
@@ -546,7 +646,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
@@ -566,13 +666,26 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailySo2Threshold_WHO) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,
                         "\nReference line = WHO daily threshold"))
-addWeekendsDate(p)
+addWeekendsDate(p, yMin, yMax)
 ```
 
+Figure \@ref(fig:so2pcDiffcompareDay) and \@ref(fig:so2pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
+
+```{r so2pcDiffcompareDay, fig.cap="% difference in daily mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(so2dt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r so2pcDiffcompareWeek, fig.cap="% difference in weekly mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
+compareYearsDiffPlotWeekly(so2dt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
+```
 > Beware seasonal trends and weather effects
 
 # Ozone
@@ -600,8 +713,8 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p)
-addWeekendsDateTime(p)
+p <- addLockdownDateTime(p, yMin, yMax)
+addWeekendsDateTime(p, yMin, yMax)
 ```
 
 Figure \@ref(fig:o3recentProfile) shows the most recent hourly data by date and time of day.
@@ -612,7 +725,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
@@ -632,14 +745,28 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyO3Threshold_WHO) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,
                         "\nReference line = WHO daily threshold"))
-addWeekendsDate(p)
+addWeekendsDate(p, yMin, yMax)
 ```
 
+Figure \@ref(fig:o3pcDiffcompareDay) and \@ref(fig:o3pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
 
+```{r o3pcDiffcompareDay, fig.cap="% difference in daily mean Ozone levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(o3dt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r o3pcDiffcompareWeek, fig.cap="% difference in weekly mean Ozone levels 2020 vs 2017-2019, Southampton"}
+
+
+compareYearsDiffPlotWeekly(o3dt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
+```
 > Beware seasonal trends and weather effects
 
 # PM 10
@@ -667,8 +794,8 @@ scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p)
-addWeekendsDateTime(p)
+p <- addLockdownDateTime(p, yMin, yMax)
+addWeekendsDateTime(p, yMin, yMax)
 ```
 
 Figure \@ref(fig:pm10recentProfile) shows the most recent hourly data by date and time of day.
@@ -679,7 +806,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
@@ -699,11 +826,26 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyPm10Threshold_WHO) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,
                         "\nReference line = WHO daily threshold"))
-addWeekendsDate(p)
+addWeekendsDate(p, yMin, yMax)
+```
+
+Figure \@ref(fig:pm10pcDiffcompareDay) and \@ref(fig:pm10pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
+
+```{r pm10pcDiffcompareDay, fig.cap="% difference in daily mean PM10 levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(pm10dt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r pm10pcDiffcompareWeek, fig.cap="% difference in weekly mean PM10 levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlotWeekly(pm10dt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
 ```
 
 > Beware seasonal trends and weather effects
@@ -733,8 +875,8 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p)
-addWeekendsDateTime(p)
+p <- addLockdownDateTime(p, yMin, yMax)
+addWeekendsDateTime(p, yMin, yMax)
 ```
 
 Figure \@ref(fig:pm25recentProfile) shows the most recent hourly data by date and time of day.
@@ -745,7 +887,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-addWeekendsDate(p) + 
+addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
@@ -764,11 +906,26 @@ yMin <- min(plotDT$mean)
 yMax <- max(plotDT$mean)
 
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", colVar = "compareYear")
-p <- addLockdownDate(p) +
+p <- addLockdownDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap,
                         "\nReference line = WHO daily threshold"))
-addWeekendsDate(p)
+addWeekendsDate(p, yMin, yMax)
+```
+
+Figure \@ref(fig:pm25pcDiffcompareDay) and \@ref(fig:pm25pcDiffcompareWeek) show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).
+
+```{r pm25pcDiffcompareDay, fig.cap="% difference in daily mean PM2.5 levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlot(pm25dt[fixedDate >= myParams$comparePlotCut]) +
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+```
+
+```{r pm25pcDiffcompareWeek, fig.cap="% difference in weekly mean PM2.5 levels 2020 vs 2017-2019, Southampton"}
+
+compareYearsDiffPlotWeekly(pm25dt[fixedDate >= myParams$comparePlotCut]) +
+  labs(caption = paste0(myParams$lockdownCap))
 ```
 
 > Beware seasonal trends and weather effects
