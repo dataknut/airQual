@@ -152,18 +152,17 @@ compareYearsDiffPlot <- function(dt){
   yMax <- max(plotDT$pcDiff)
   p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiff)) +
     geom_step() +
-    scale_x_date(date_breaks = "7 day", date_labels =  "%a %d %b")  +
-    theme(axis.text.x=element_text(angle=90, hjust=1)) +
+    scale_x_date(date_breaks = "2 days", date_labels =  "%a %d %b")  +
+    theme(axis.text.x=element_text(angle=90, hjust=1, size = 5)) +
     labs(x = "Date",
          y = "% difference 2020 vs mean 2017-2019",
          caption = paste0(myParams$lockdownCap, myParams$weekendCap)) +  
     theme(legend.position="bottom") +
     geom_hline(yintercept = 0, linetype = 3)
+  
   p <- addLockdownDate(p, yMin, yMax)
   
-  p <- addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = "7 day",
-                                                date_labels =  "%a %d %b",
-                                                date_minor_breaks = "1 day")
+  p <- addWeekendsDate(p, yMin, yMax)
   return(p)
 }
 
@@ -260,27 +259,27 @@ myParams$weAlpha <- 0.3
 myParams$weFill <- "grey50"
 addWeekendsDate <- function(p, yMin, yMax){
   p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
-                    xmax = as.Date("2020-03-08"),
+                    xmax = as.Date("2020-03-09"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = as.Date("2020-03-14"),
-                    xmax = as.Date("2020-03-15"),
+                    xmax = as.Date("2020-03-16"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = as.Date("2020-03-21"),
-                    xmax = as.Date("2020-03-22"),
+                    xmax = as.Date("2020-03-23"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = as.Date("2020-03-28"),
-                    xmax = as.Date("2020-03-29"),
+                    xmax = as.Date("2020-03-30"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = as.Date("2020-04-04"),
-                    xmax = as.Date("2020-04-05"),
+                    xmax = as.Date("2020-04-06"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   p <- p + annotate("rect", xmin = as.Date("2020-04-10"),
-                    xmax = as.Date("2020-04-13"), # Easter
+                    xmax = as.Date("2020-04-14"), # Easter
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
@@ -517,7 +516,9 @@ Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show t
 
 ```{r no2pcDiffcompareDay, fig.cap="Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(no2dt[fixedDate >= myParams$comparePlotCut]) +
+testDate <- myParams$comparePlotCut
+#testDate <- as.Date("2020-03-21")
+compareYearsDiffPlot(no2dt[fixedDate >= testDate]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
