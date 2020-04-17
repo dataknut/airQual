@@ -81,7 +81,7 @@ myParams$comparePlotCutDate <- as.Date("2020-02-01")
 
 myParams$gamCap <- "Trend line = Generalized additive model (gam) with integrated smoothness estimation"
 myParams$lockdownCap <- "\nColoured rectangle = UK covid lockdown to date"
-myParams$weekendCap <- "\nShaded rectangle = weekends"
+myParams$weekendCap <- "\nShaded rectangle = weekends & public holidays"
 myParams$noThresh <- "\nNo specified WHO threshold"
 
 myParams$myAlpha <- 0.1
