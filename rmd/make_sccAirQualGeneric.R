@@ -128,7 +128,7 @@ doReport <- function(rmd){
                                   subtitle = myParams$subtitle,
                                   authors = myParams$authors),
                     output_file = paste0(myParams$projLoc,"/docs/", # for easy github pages management
-                                         myParams$rmd,"_" , myParams$subtitle, ".html")
+                                         myParams$rmd, ".html")
   )
 }
 
@@ -143,7 +143,7 @@ myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 # myParams$rmd <- "sccAirQualDataExtract" 
 # myParams$subtitle <- "Extracting data for modelling"
 
-myParams$rmd <- "sccAirQualExplore_lockdown"
+myParams$rmd <- "sccAirQualExplore_covidLockdown2020"
 myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 
 #myParams$rmd <- "sccAirQualExplore_windroses" 
