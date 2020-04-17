@@ -424,7 +424,7 @@ Latest data updated:
  * http://southampton.my-air.uk last updated at `r lastSCC` (`r round(diffSCC,2)` hours ago)
  * https://uk-air.defra.gov.uk/networks/network-info?view=aurn last updated at `r lastAURN` (`r round(diffAURN,2)` hours ago)
 
-Table \@ref(tab:showSites) shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section \@ref(annexMissing).
+Table \@ref(tab:showSites) shows the available sites and sources. Note that some of the non-AURN sites appear to [have stopped updating recently](https://github.com/CfSOtago/airQual/issues/1). For a detailed analysis of recent missing data see Section \@ref(annexMissing).
 
 ```{r showSites}
 t <- fixedDT[!is.na(value),.(nObs = .N, firstData = min(dateTimeUTC), latestData = max(dateTimeUTC),
