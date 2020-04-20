@@ -1158,7 +1158,7 @@ elapsed <- t[[3]]
 
 Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
 
-R packages used:
+R packages used in this report:
 
  * data.table - [@data.table]
  * ggplot2 - [@ggplot2]
@@ -1166,7 +1166,10 @@ R packages used:
  * kableExtra - [@kableExtra]
  * lubridate - [@lubridate]
  * skimr - [@skimr]
- * viridis - [@viridis]
-            
+
+R packages used in data download and processing:
+
+ * openAir - [@openair]
+ 
 # References
 
