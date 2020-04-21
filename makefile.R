@@ -2,7 +2,7 @@
 
 # refresh the data
 source("dataProcessing/getAURNData.R")
-source("dataProcessing/getSouthamptonCityCouncilData.R")
+#source("dataProcessing/getSouthamptonCityCouncilData.R")
 
 # run the lockdown analysis
 source("rmd/make_SotonLockdown.R")

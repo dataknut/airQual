@@ -2,6 +2,8 @@
 
 # http://southampton.my-air.uk
 
+# seems to have stopped working
+
 # (NOT from AURN)
 
 # Libraries ----
@@ -161,7 +163,8 @@ refreshData <- function(years){
 }
 
 # code ----
-metaDT <- refreshData(years = years)
+# do not run - will over-write existing data with NULL as my-air has stopped
+#metaDT <- refreshData(years = years)
 
 # done ----
 # check what arrived
