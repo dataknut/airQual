@@ -425,24 +425,24 @@ fixedDT[, compareYear := ifelse(year == 2020, "2020",
 # these should match 
 #table(fixedDT$origDoW, fixedDT$fixedDoW)
 
-lastSCC <- max(fixedDT[source == "southampton.my-air.uk"]$dateTimeUTC)
-diffSCC <- lubridate::now() - lastSCC
+lastHA <- max(fixedDT[source == "hantsAir"]$dateTimeUTC)
+diffHA <- lubridate::now() - lastHA
 lastAURN <- max(fixedDT[source == "AURN"]$dateTimeUTC)
 diffAURN <- lubridate::now() - lastAURN
 ```
 
 Data for Southampton downloaded from :
 
- * http://southampton.my-air.uk (see also https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/ and http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton);
+ * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton (see also https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/);
  * https://uk-air.defra.gov.uk/networks/network-info?view=aurn
  
-Southampton City Council collects various forms of air quality data at the sites shown in Table \@ref(tab:showSites). The data is available in raw form from http://southampton.my-air.uk and http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton&bulletin=daily&site=SH5.
+Southampton City Council collects various forms of air quality data at the sites shown in Table \@ref(tab:showSites). The data is available in raw form from http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton&bulletin=daily&site=SH5.
 
 Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). The data that goes via AURN is [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process. AURN data is (c) Crown 2020 copyright Defra and available for re-use via https://uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
 
 In this report we use data from the following sources:
 
- * http://southampton.my-air.uk last updated at `r lastSCC`;
+ * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton last updated at `r lastSCC`;
  * https://uk-air.defra.gov.uk/networks/network-info?view=aurn last updated at `r lastAURN`.
 
 Table \@ref(tab:showSites) shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section \@ref(annexMissing).

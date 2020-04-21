@@ -44,33 +44,50 @@ myParams$hourlyNo2Threshold_WHO <- 200
 myParams$dailySo2Threshold_WHO <- 20
 myParams$tenMSo2Threshold_WHO <- 500
 
-myParams$sccDataPath <- path.expand("~/Data/SCC/airQual/direct/")
+myParams$sccDataPath <- path.expand("~/Data/SCC/airQual/myAir/")
+myParams$hantsAirDataPath <- path.expand("~/Data/SCC/airQual/hantsAir/")
 myParams$aurnDataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 
 # Load data ----
 # > SSC data ----
-files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
+# do not use, no longer updting from my-air
+# files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
+# l <- lapply(files, data.table::fread)
+# origDataDT <- rbindlist(l, fill = TRUE) # rbind them
+# 
+# origDataDT$MeasurementDateGMT <- NULL # not needed
+# origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
+# l <- NULL # not needed
+# 
+# lDT <- data.table::melt(origDataDT,
+#                         id.vars=c("site","dateTimeUTC"),
+#                         measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
+#                         value.name = "value" # varies 
+# )
+# 
+# lDT[, obsDate := lubridate::date(dateTimeUTC)]
+# lDT[, source := "southampton.my-air.uk"]
+# # map to AURN definitions
+# lDT[, pollutant := as.character(variable)]
+# lDT[, pollutant := ifelse(pollutant == "oz", "o3", pollutant)]
+# lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
+
+# hantsAir data
+files <- list.files(paste0(myParams$hantsAirDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
+# could limit this to just 2017 ->
 l <- lapply(files, data.table::fread)
-origDataDT <- rbindlist(l, fill = TRUE) # rbind them
+hantsAirDT <- rbindlist(l, fill = TRUE) # rbind them
+hantsAirDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)]
+hantsAirDT[, ratified := `Provisional or Ratified`]
+hantsAirDT[, value := as.numeric(value)] # to match AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "NO","no" , pollutant)] # fix to AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "NO2","no2" , pollutant)] # fix to AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "NOX","nox" , pollutant)] # fix to AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "PM10","pm10" , pollutant)] # fix to AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "PM25","pm2.5" , pollutant)] # fix to AURN
+hantsAirDT[, pollutant := ifelse(pollutant == "SO2","sp2" , pollutant)] # fix to AURN
 
-origDataDT$MeasurementDateGMT <- NULL # not needed
-origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
-l <- NULL # not needed
-
-lDT <- data.table::melt(origDataDT,
-                        id.vars=c("site","dateTimeUTC"),
-                        measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
-                        value.name = "value" # varies 
-)
-
-lDT[, obsDate := lubridate::date(dateTimeUTC)]
-lDT[, source := "southampton.my-air.uk"]
-# map to AURN definitions
-lDT[, pollutant := as.character(variable)]
-lDT[, pollutant := ifelse(pollutant == "oz", "o3", pollutant)]
-lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
-
-# > load AURN data ----
+# > AURN data ----
 # Ambient Temperature
 # Barometric pressure
 # Carbon monoxide
@@ -109,13 +126,17 @@ aurnDT <- rbindlist(l, fill = TRUE) # rbind them
 
 aurnDT[, dateTimeUTC := lubridate::as_datetime(date)]
 aurnDT[, obsDate := lubridate::date(dateTimeUTC)]
+aurnDT[, ratified := "?"]
 aurnDT[, source := "AURN"]
 
 # rbind the matching columns
-sotonAirDT <- rbind(aurnDT[, .(dateTimeUTC, pollutant, source, site, value)],
-                    lDT[, .(dateTimeUTC, pollutant, source, site, value)])
+sotonAirDT <- rbind(aurnDT[, .(dateTimeUTC, pollutant, source, site, value, ratified)],
+                    hantsAirDT[, .(dateTimeUTC, pollutant, source, site, value, ratified)])
 
 # test
+sotonAirDT[, year := lubridate::year(dateTimeUTC)]
+with(sotonAirDT, table(year, source))
+
 with(sotonAirDT, table(pollutant, source))
 
 sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
