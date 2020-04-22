@@ -17,7 +17,7 @@ library(lubridate)
 
 # > years ----
 # "2010","2011","2012","2013", "2014", "2015", "2016", "2017", "2018","2019"
-years <- c("2010","2011","2012","2013", "2014", "2015")
+years <- c("2020")
 upTo <- lubridate::today() # could use this to limit current year search but...
 
 # > locations ----
