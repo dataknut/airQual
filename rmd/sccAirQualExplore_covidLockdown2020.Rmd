@@ -442,8 +442,8 @@ Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/net
 
 In this report we use data from the following sources:
 
- * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton last updated at `r lastHA` (``r as.duration(diffHA)` ago);
- * https://uk-air.defra.gov.uk/networks/network-info?view=aurn last updated at `r lastAURN` (`r as.duration(diffAURN)` ago).
+ * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton last updated at `r lastHA`;
+ * https://uk-air.defra.gov.uk/networks/network-info?view=aurn last updated at `r lastAURN`.
 
 Table \@ref(tab:showSites) shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section \@ref(annexMissing).
 
