@@ -11,6 +11,7 @@ output:
   bookdown::html_document2:
     fig_caption: yes
     code_folding: hide
+    self_contained: false # https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies so we have plots seperately for easy import to word
     number_sections: yes
     toc: yes
     toc_depth: 2
@@ -269,6 +270,7 @@ addLockdownDateTime <- function(p, yMin, yMax){
 # only makes sense to use these for x axis covering March onwards
 myParams$weAlpha <- 0.3
 myParams$weFill <- "grey50"
+myParams$labelPos <- 0.9
 addWeekendsDate <- function(p, yMin, yMax){
   p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
                     xmax = as.Date("2020-03-09"),
@@ -294,8 +296,15 @@ addWeekendsDate <- function(p, yMin, yMax){
                     xmax = as.Date("2020-04-14"), # Easter
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("text", x = as.Date("2020-04-10"),
+                    y = yMax*myParams$labelPos,
+                    label = "Easter") # Easter
   p <- p + annotate("rect", xmin = as.Date("2020-04-18"),
-                    xmax = as.Date("2020-04-20"), # Easter
+                    xmax = as.Date("2020-04-20"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-04-25"),
+                    xmax = as.Date("2020-04-27"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
@@ -326,8 +335,15 @@ addWeekendsDateTime <- function(p, yMin, yMax){
                     xmax = lubridate::as_datetime("2020-04-13 23:59:59"), # Easter
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("text", x = lubridate::as_datetime("2020-04-10 00:00:00"),
+                    y = yMax*myParams$labelPos,
+                    label = "Easter") # Easter
   p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-04-18 00:00:00"),
-                    xmax = lubridate::as_datetime("2020-04-19 23:59:59"), # Easter
+                    xmax = lubridate::as_datetime("2020-04-19 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+    p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-04-25 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-04-26 23:59:59"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
