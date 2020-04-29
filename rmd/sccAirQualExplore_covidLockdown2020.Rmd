@@ -504,7 +504,7 @@ We use this data to compare:
  * pre and during-lockdown air quality measures
  * air quality measures during lockdown 2020 with average measures for the preceding 3 years (2017-2019)
 
-It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see \@ref(fig:recentWind)).
+It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see Figure \@ref(fig:recentWind)).
 
 Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound effects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis.
 
@@ -1108,33 +1108,31 @@ Figure \@ref(fig:recentWind) shows the wind direction and speed over the period 
 
 ```{r recentWind, fig.cap="Wind direction and speed in Southampton since 23rd March 2020"}
 # windDT[, .(mean = mean(wd)), keyby = .(site)] # they're identical across AURN sites
-  windDirDT <- fixedDT[pollutant == "wd" & site %like% "A33"] 
-  windDirDT[, wd := value]
-  setkey(windDirDT, dateTimeUTC, site, source)
-  windSpeedDT <- fixedDT[pollutant == "ws" & site %like% "A33"]
-  windSpeedDT[, ws := value]
-  setkey(windSpeedDT, dateTimeUTC, site, source)
-  
-  windDT <- windSpeedDT[windDirDT]
-  windDT[, rTime := hms::as_hms(dateTimeUTC)]
-  p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], 
-                  aes(x = dateTimeUTC, y = ws, 
-                      angle=-wd+90, colour = ws)) +
-    geom_text(label="→") +
-    theme(legend.position="bottom") +
-    guides(colour=guide_legend(title="Wind speed")) +
-    scale_color_continuous(high = "#132B43", low = "#56B1F7")
-    
+windDirDT <- fixedDT[pollutant == "wd" & site %like% "A33"]
+windDirDT[, `:=`(wd, value)]
+setkey(windDirDT, dateTimeUTC, site, source)
+windSpeedDT <- fixedDT[pollutant == "ws" & site %like% "A33"]
+windSpeedDT[, `:=`(ws, value)]
+setkey(windSpeedDT, dateTimeUTC, site, source)
+
+windDT <- windSpeedDT[windDirDT]
+windDT[, `:=`(rTime, hms::as_hms(dateTimeUTC))]
+p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], aes(x = dateTimeUTC, y = ws, angle = -wd + 90, 
+                                                                  colour = ws)) + geom_text(label = "→") + theme(legend.position = "bottom") + guides(colour = guide_legend(title = "Wind speed")) + 
+  scale_color_continuous(high = "#132B43", low = "#56B1F7") # normal blue reversed
+
 
 yMin <- min(windDT[obsDate > as.Date("2020-03-23")]$ws)
 yMax <- max(windDT[obsDate > as.Date("2020-03-23")]$ws)
-p <- addWeekendsDateTime(p, yMin, yMax) 
-p <- addLockdownDateTime(p, yMin, yMax)
-p + 
-  labs(y = "Wind speed",
-         x = "Time",
-       caption = paste0(myParams$lockdownCap, myParams$weekendCap)) +
-  xlim(lubridate::as_datetime("2020-03-23 23:59:59"), NA)
+p <- addWeekendsDateTime(p, yMin, yMax)
+#p <- addLockdownDateTime(p, yMin, yMax)
+p <- p + labs(y = "Wind speed", 
+         x = "Time", 
+         caption = paste0(myParams$weekendCap)) + 
+  theme(axis.text.x=element_text(angle=90, hjust=1, size = 9))
+p +
+  xlim(lubridate::as_datetime("2020-03-23 23:59:59"), 
+       NA)  # do this last otherwise adding the weekends takes the plot back to the earlierst weekend we annotate
 ```
 
 ## Missing data {#annexMissing}
