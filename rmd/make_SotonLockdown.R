@@ -179,4 +179,5 @@ myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air qualit
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
 
 # > run report ----
+#
 doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
