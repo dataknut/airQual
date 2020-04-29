@@ -133,7 +133,7 @@ compareYearsPlot <- function(dt, xVar, yVar, colVar){
   return(p)
 }
 
-compareYearsDiffPlot <- function(dt){
+compareYearsDiffPlotDaily <- function(dt){
   baseDT <- dt[compareYear == "2017-2019", .(baseMean = mean(value),
                                              baseMedian = median(value)), 
                keyby = .(fixedDate, fixedDoW, compareYear)]
@@ -151,7 +151,9 @@ compareYearsDiffPlot <- function(dt){
   # final plot - adds annotations
   # use means for consistency with comparison plots where we use WHO thresholds (means)
   yMin <- min(plotDT$pcDiffMean)
+  print(paste0("Max drop %:", round(yMin)))
   yMax <- max(plotDT$pcDiffMean)
+  print(paste0("Max increase %:", round(yMax)))
   p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiffMean 
                                    #color = pos, group=NA)
                                    )
@@ -171,6 +173,17 @@ compareYearsDiffPlot <- function(dt){
   
   p <- p + facet_grid(site ~ .) +
     theme(strip.text.y.right = element_text(angle = 90))
+  
+  # p <- p + geom_hline(yintercept = yMin, linetype = 3) # dotted
+  # p <- p + annotate("text", x = myParams$lockDownEndDate,
+  #                   y = yMin,
+  #                   label = yMin) # 
+  # 
+  # p <- p + geom_hline(yintercept = yMax, linetype = 3)
+  # p <- p + annotate("text", x = myParams$lockDownEndDate,
+  #                   y = yMax,
+  #                   label = yMax) # 
+  
   return(p)
 }
 
@@ -429,7 +442,7 @@ dt2017[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
 # table(dt2017$origDoW, dt2017$fixedDoW)
 # head(dt2017[origDoW != fixedDoW])
 
-fixedDT <- rbind(dt2017, dt2018, dt2019, dt2020) # leve out 2016 for now
+fixedDT <- rbind(dt2017, dt2018, dt2019, dt2020) # leave out 2016 for now
 
 fixedDT[, fixedDate := lubridate::as_date(fixedDate)]
 fixedDT[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
@@ -486,6 +499,15 @@ kableExtra::kable(t, caption = "Sites, data source and number of valid observati
   kable_styling()
 ```
 
+We use this data to compare:
+
+ * pre and during-lockdown air quality measures
+ * air quality measures during lockdown 2020 with average measures for the preceding 3 years (2017-2019)
+
+It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see \@ref(fig:recentWind)).
+
+Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound effects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis.
+
 
 For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
 
@@ -527,7 +549,9 @@ yMin <- min(recentDT$value)
 yMax <- max(recentDT$value)
 
 p <- addLockdownDateTime(p, yMin, yMax)
-addWeekendsDateTime(p,yMin, yMax) + guides(colour=guide_legend(ncol=2))
+addWeekendsDateTime(p,yMin, yMax) +
+  guides(colour=guide_legend(ncol=2))
+
 ```
 
 Figure \@ref(fig:no2recentProfile) shows the most recent hourly data by date and time of day.
@@ -579,9 +603,8 @@ Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show t
 
 testDate <- myParams$comparePlotCut
 #testDate <- as.Date("2020-03-21")
-compareYearsDiffPlot(no2dt[site %like% "via AURN" & fixedDate >= testDate]) +
+compareYearsDiffPlotDaily(no2dt[site %like% "via AURN" & fixedDate >= testDate]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
-
 ```
 
 ```{r no2pcDiffcompareWeek, fig.cap="Percentage difference in weekly mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
@@ -589,7 +612,7 @@ compareYearsDiffPlotWeekly(no2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and weather effects
+> Beware seasonal trends and meteorological effects
 
 
 # Oxides of Nitrogen (nox)
@@ -666,7 +689,7 @@ Figure \@ref(fig:noxpcDiffcompareDay) and \@ref(fig:noxpcDiffcompareWeek) show t
 
 ```{r noxpcDiffcompareDay, fig.cap="% difference in daily mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotDaily(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
@@ -753,7 +776,7 @@ Figure \@ref(fig:so2pcDiffcompareDay) and \@ref(fig:so2pcDiffcompareWeek) show t
 
 ```{r so2pcDiffcompareDay, fig.cap="% difference in daily mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(so2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotDaily(so2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
@@ -762,7 +785,7 @@ compareYearsDiffPlotWeekly(so2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and weather effects
+> Beware seasonal trends and meteorological effects
 
 # Ozone
 
@@ -842,7 +865,7 @@ Figure \@ref(fig:o3pcDiffcompareDay) and \@ref(fig:o3pcDiffcompareWeek) show the
 
 ```{r o3pcDiffcompareDay, fig.cap="% difference in daily mean Ozone levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotDaily(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
@@ -853,7 +876,7 @@ compareYearsDiffPlotWeekly(no2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and weather effects
+> Beware seasonal trends and meteorological effects
 
 # PM 10
 
@@ -931,7 +954,7 @@ Figure \@ref(fig:pm10pcDiffcompareDay) and \@ref(fig:pm10pcDiffcompareWeek) show
 
 ```{r pm10pcDiffcompareDay, fig.cap="% difference in daily mean PM10 levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotDaily(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
@@ -942,7 +965,7 @@ compareYearsDiffPlotWeekly(pm10dt[site %like% "via AURN" & fixedDate >= myParams
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and weather effects
+> Beware seasonal trends and meteorological effects
 
 # PM 2.5
 
@@ -1019,7 +1042,7 @@ Figure \@ref(fig:pm25pcDiffcompareDay) and \@ref(fig:pm25pcDiffcompareWeek) show
 
 ```{r pm25pcDiffcompareDay, fig.cap="% difference in daily mean PM2.5 levels 2020 vs 2017-2019, Southampton"}
 
-compareYearsDiffPlot(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
+compareYearsDiffPlotDaily(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut]) +
     labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 
 ```
@@ -1030,7 +1053,7 @@ compareYearsDiffPlotWeekly(pm25dt[site %like% "via AURN" & fixedDate >= myParams
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and weather effects
+> Beware seasonal trends and meteorological effects
 
 # Save data
 
@@ -1078,6 +1101,41 @@ NB:
 We have also produced [wind/pollution roses](sccAirQualExplore_windroses_Wind and pollution roses 2016-2020 (AURN data).html) for these sites.
 
 # Annex
+
+## Wind direction and speed
+
+Figure \@ref(fig:recentWind) shows the wind direction and speed over the period of lockdown and can be compared with the equivalent pollutant level plots above such as Figure \@ref(fig:no2recent).
+
+```{r recentWind, fig.cap="Wind direction and speed in Southampton since 23rd March 2020"}
+# windDT[, .(mean = mean(wd)), keyby = .(site)] # they're identical across AURN sites
+  windDirDT <- fixedDT[pollutant == "wd" & site %like% "A33"] 
+  windDirDT[, wd := value]
+  setkey(windDirDT, dateTimeUTC, site, source)
+  windSpeedDT <- fixedDT[pollutant == "ws" & site %like% "A33"]
+  windSpeedDT[, ws := value]
+  setkey(windSpeedDT, dateTimeUTC, site, source)
+  
+  windDT <- windSpeedDT[windDirDT]
+  windDT[, rTime := hms::as_hms(dateTimeUTC)]
+  p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], 
+                  aes(x = dateTimeUTC, y = ws, 
+                      angle=-wd+90, colour = ws)) +
+    geom_text(label="→") +
+    theme(legend.position="bottom") +
+    guides(colour=guide_legend(title="Wind speed")) +
+    scale_color_continuous(high = "#132B43", low = "#56B1F7")
+    
+
+yMin <- min(windDT[obsDate > as.Date("2020-03-23")]$ws)
+yMax <- max(windDT[obsDate > as.Date("2020-03-23")]$ws)
+p <- addWeekendsDateTime(p, yMin, yMax) 
+p <- addLockdownDateTime(p, yMin, yMax)
+p + 
+  labs(y = "Wind speed",
+         x = "Time",
+       caption = paste0(myParams$lockdownCap, myParams$weekendCap)) +
+  xlim(lubridate::as_datetime("2020-03-23 23:59:59"), NA)
+```
 
 ## Missing data {#annexMissing}
 
