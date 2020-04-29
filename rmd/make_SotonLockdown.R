@@ -165,7 +165,11 @@ myParams$authors <- "Ben Anderson (b.anderson@soton.ac.uk `@dataknut`)"
 # myParams$subtitle <- "Extracting data for modelling"
 
 myParams$rmd <- "sccAirQualExplore_covidLockdown2020"
+myParams$version <- ""
+# over-write version param for particlar versions
 myParams$version <- "_DEFRA_30_04_2020" # use this to keep particular versions
+sotonAirDT <- sotonAirDT[obsDate < as.Date("2020-04-27")]
+
 myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air quality"
 
 #myParams$rmd <- "sccAirQualExplore_windroses" 

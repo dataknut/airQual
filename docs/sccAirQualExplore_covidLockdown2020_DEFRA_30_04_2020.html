@@ -269,7 +269,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Exploring the effect of UK covid 19 lockdown on air quality</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk" class="email">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-04-29 14:12:12 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-04-29 14:53:59 (Europe/London)</h4>
 
 </div>
 
@@ -373,7 +373,7 @@ diffAURN &lt;- lubridate::now() - lastAURN</code></pre>
 <p>Some of these sites feed data to <a href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn">AURN</a>. The data that goes via AURN is <a href="https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf">ratified</a> to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process. AURN data is (c) Crown 2020 copyright Defra and available for re-use via <a href="https://uk-air.defra.gov.uk" class="uri">https://uk-air.defra.gov.uk</a>, licenced under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/">Open Government Licence</a> (OGL).</p>
 <p>In this report we use data from the following sources:</p>
 <ul>
-<li><a href="http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton" class="uri">http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton</a> last updated at 2020-04-27 07:00:00;</li>
+<li><a href="http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton" class="uri">http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton</a> last updated at 2020-04-26 23:00:00;</li>
 <li><a href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn" class="uri">https://uk-air.defra.gov.uk/networks/network-info?view=aurn</a> last updated at 2020-04-26 23:00:00.</li>
 </ul>
 <p>Table <a href="#tab:showSites">2.1</a> shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section <a href="#annexMissing">11.2</a>.</p>
@@ -418,13 +418,13 @@ Southampton - A33 Roadside
 hantsAir
 </td>
 <td style="text-align:right;">
-82891
+82868
 </td>
 <td style="text-align:left;">
 2017-01-01 00:00:00
 </td>
 <td style="text-align:left;">
-2020-04-27 07:00:00
+2020-04-26 23:00:00
 </td>
 <td style="text-align:right;">
 3
@@ -439,13 +439,13 @@ Southampton - Background
 hantsAir
 </td>
 <td style="text-align:right;">
-157103
+157064
 </td>
 <td style="text-align:left;">
 2017-01-25 11:00:00
 </td>
 <td style="text-align:left;">
-2020-04-27 07:00:00
+2020-04-26 23:00:00
 </td>
 <td style="text-align:right;">
 6
@@ -647,7 +647,7 @@ AURN
 <li>pre and during-lockdown air quality measures</li>
 <li>air quality measures during lockdown 2020 with average measures for the preceding 3 years (2017-2019)</li>
 </ul>
-<p>It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have <a href="https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/">very high import of pollution from Europe</a> and that the wind direction and speed was highly variable across the lockdown period (see <a href="#fig:recentWind">11.1</a>).</p>
+<p>It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have <a href="https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/">very high import of pollution from Europe</a> and that the wind direction and speed was highly variable across the lockdown period (see Figure <a href="#fig:recentWind">11.1</a>).</p>
 <p>Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound effects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis.</p>
 <p>For much more detailed analysis see a longer and very messy <a href="https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html">data report</a>.</p>
 </div>
@@ -1974,15 +1974,16 @@ windDT &lt;- windSpeedDT[windDirDT]
 windDT[, `:=`(rTime, hms::as_hms(dateTimeUTC))]
 p &lt;- ggplot2::ggplot(windDT[obsDate &gt; as.Date(&quot;2020-03-23&quot;)], aes(x = dateTimeUTC, y = ws, angle = -wd + 90, 
     colour = ws)) + geom_text(label = &quot;→&quot;) + theme(legend.position = &quot;bottom&quot;) + guides(colour = guide_legend(title = &quot;Wind speed&quot;)) + 
-    scale_color_continuous(high = &quot;#132B43&quot;, low = &quot;#56B1F7&quot;)
+    scale_color_continuous(high = &quot;#132B43&quot;, low = &quot;#56B1F7&quot;)  # normal blue reversed
 
 
 yMin &lt;- min(windDT[obsDate &gt; as.Date(&quot;2020-03-23&quot;)]$ws)
 yMax &lt;- max(windDT[obsDate &gt; as.Date(&quot;2020-03-23&quot;)]$ws)
 p &lt;- addWeekendsDateTime(p, yMin, yMax)
-p &lt;- addLockdownDateTime(p, yMin, yMax)
-p + labs(y = &quot;Wind speed&quot;, x = &quot;Time&quot;, caption = paste0(myParams$lockdownCap, myParams$weekendCap)) + xlim(lubridate::as_datetime(&quot;2020-03-23 23:59:59&quot;), 
-    NA)</code></pre>
+# p &lt;- addLockdownDateTime(p, yMin, yMax)
+p &lt;- p + labs(y = &quot;Wind speed&quot;, x = &quot;Time&quot;, caption = paste0(myParams$weekendCap)) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1, size = 9))
+p + xlim(lubridate::as_datetime(&quot;2020-03-23 23:59:59&quot;), NA)  # do this last otherwise adding the weekends takes the plot back to the earlierst weekend we annotate</code></pre>
 <div class="figure"><span id="fig:recentWind"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/recentWind-1.png" alt="Wind direction and speed in Southampton since 23rd March 2020" width="672" />
 <p class="caption">
@@ -2070,7 +2071,7 @@ Figure 11.7: Availability and level of PM 2.5 data over time
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 83.555 seconds ( 1.39 minutes).</p>
+<p>Analysis completed in 64.98 seconds ( 1.08 minutes).</p>
 <p>R packages used in this report:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>
