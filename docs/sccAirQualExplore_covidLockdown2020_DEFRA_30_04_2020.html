@@ -269,7 +269,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Exploring the effect of UK covid 19 lockdown on air quality</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk" class="email">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-04-29 14:53:59 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-04-29 17:02:06 (Europe/London)</h4>
 
 </div>
 
@@ -377,8 +377,8 @@ diffAURN &lt;- lubridate::now() - lastAURN</code></pre>
 <li><a href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn" class="uri">https://uk-air.defra.gov.uk/networks/network-info?view=aurn</a> last updated at 2020-04-26 23:00:00.</li>
 </ul>
 <p>Table <a href="#tab:showSites">2.1</a> shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section <a href="#annexMissing">11.2</a>.</p>
-<pre class="r"><code>t &lt;- fixedDT[!is.na(value), .(nObs = .N, firstData = min(dateTimeUTC), latestData = max(dateTimeUTC), nMeasures = uniqueN(pollutant)), 
-    keyby = .(site, source)]
+<pre class="r"><code>t &lt;- fixedDT[!is.na(value), .(nObs = .N, firstData = min(dateTimeUTC), latestData = max(dateTimeUTC), 
+    nMeasures = uniqueN(pollutant)), keyby = .(site, source)]
 
 kableExtra::kable(t, caption = &quot;Sites, data source and number of valid observations. note that measures includes wind speed and direction in the AURN sourced data&quot;, 
     digits = 2) %&gt;% kable_styling()</code></pre>
@@ -540,10 +540,11 @@ AURN
 <p>To avoid confusion and ‘double counting’, in the remainder of the analysis we replace the Southampton AURN site data with the data for the same site sourced via AURN as shown in Table <a href="#tab:selectFinalSites">2.2</a>. This has the disadvantage that the data is slightly less up to date (see Table <a href="#tab:showSites">2.1</a>). As will be explained below in the comparative analysis we will use only the AURN data to avoid missing data issues.</p>
 <pre class="r"><code>fixedDT &lt;- fixedDT[!(site %like% &quot;AURN site&quot;)]
 
-t &lt;- fixedDT[!is.na(value), .(nObs = .N, nPollutants = uniqueN(pollutant), lastDate = max(dateTimeUTC)), keyby = .(site, 
-    source)]
+t &lt;- fixedDT[!is.na(value), .(nObs = .N, nPollutants = uniqueN(pollutant), lastDate = max(dateTimeUTC)), 
+    keyby = .(site, source)]
 
-kableExtra::kable(t, caption = &quot;Sites, data source and number of valid observations&quot;, digits = 2) %&gt;% kable_styling()</code></pre>
+kableExtra::kable(t, caption = &quot;Sites, data source and number of valid observations&quot;, digits = 2) %&gt;% 
+    kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:selectFinalSites">Table 2.2: </span>Sites, data source and number of valid observations
@@ -670,7 +671,8 @@ p &lt;- p + scale_x_datetime(date_breaks = &quot;2 day&quot;, date_labels = &quo
     hjust = 1))
 
 p &lt;- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) + labs(caption = paste0(myParams$lockdownCap, 
-    myParams$weekendCap, &quot;\nReference line = WHO hourly threshold (&quot;, myParams$hourlyNo2Threshold_WHO, &quot;)&quot;))
+    myParams$weekendCap, &quot;\nReference line = WHO hourly threshold (&quot;, myParams$hourlyNo2Threshold_WHO, 
+    &quot;)&quot;))
 
 # final plot - adds annotations
 yMin &lt;- min(recentDT$value)
@@ -699,8 +701,8 @@ Figure 4.2: Nitrogen Dioxide levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:no2compare">4.3</a> shows the most recent mean daily values compared to previous years for thw two AURN sites which do not have missing data. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.</p>
 <pre class="r"><code>plotDT &lt;- no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$meanVal)
@@ -711,7 +713,8 @@ p &lt;- compareYearsPlot(plotDT, xVar = &quot;fixedDate&quot;, yVar = &quot;mean
 p &lt;- addLockdownDate(p, yMin, yMax) + labs(x = &quot;Date&quot;, y = &quot;Daily mean&quot;, caption = paste0(myParams$lockdownCap, 
     myParams$weekendCap, myParams$noThresh))
 
-p &lt;- addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d %b&quot;, date_minor_breaks = &quot;1 day&quot;)
+p &lt;- addWeekendsDate(p, yMin, yMax) + scale_x_date(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d %b&quot;, 
+    date_minor_breaks = &quot;1 day&quot;)
 
 p + facet_grid(site ~ .) + theme(strip.text.y.right = element_text(angle = 90))</code></pre>
 <div class="figure"><span id="fig:no2compare"></span>
@@ -733,7 +736,8 @@ compareYearsDiffPlotDaily(no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate
 Figure 4.4: Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:no2pcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/no2pcDiffcompareWeek-1.png" alt="Percentage difference in weekly mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -782,8 +786,8 @@ Figure 5.2: Oxides of nitrogen levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:noxcompare">5.3</a> shows the most recent mean daily values compared to previous years for the two AURN sites.</p>
 <pre class="r"><code>plotDT &lt;- noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$meanVal)
@@ -802,8 +806,8 @@ Figure 5.3: Oxides of nitrogen levels, Southampton (daily mean)
 </p>
 </div>
 <p>Figure <a href="#fig:noxpcDiffcompareDay">5.4</a> and <a href="#fig:noxpcDiffcompareWeek">5.5</a> show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).</p>
-<pre class="r"><code>compareYearsDiffPlotDaily(noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap, 
-    myParams$weekendCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotDaily(noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))</code></pre>
 <pre><code>## [1] &quot;Max drop %:-92&quot;
 ## [1] &quot;Max increase %:172&quot;</code></pre>
 <div class="figure"><span id="fig:noxpcDiffcompareDay"></span>
@@ -812,7 +816,8 @@ Figure 5.3: Oxides of nitrogen levels, Southampton (daily mean)
 Figure 5.4: % difference in daily mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:noxpcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/noxpcDiffcompareWeek-1.png" alt="% difference in weekly mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -856,8 +861,8 @@ Figure 6.2: Sulphour Dioxide levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:so2compare">6.3</a> shows the most recent mean daily values compared to previous years.</p>
 <pre class="r"><code>plotDT &lt;- so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -877,8 +882,8 @@ Figure 6.3: Sulphour dioxide levels, Southampton (daily mean)
 </p>
 </div>
 <p>Figure <a href="#fig:so2pcDiffcompareDay">6.4</a> and <a href="#fig:so2pcDiffcompareWeek">6.5</a> show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).</p>
-<pre class="r"><code>compareYearsDiffPlotDaily(so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap, 
-    myParams$weekendCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotDaily(so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))</code></pre>
 <pre><code>## [1] &quot;Max drop %:-83&quot;
 ## [1] &quot;Max increase %:579&quot;</code></pre>
 <div class="figure"><span id="fig:so2pcDiffcompareDay"></span>
@@ -887,7 +892,8 @@ Figure 6.3: Sulphour dioxide levels, Southampton (daily mean)
 Figure 6.4: % difference in daily mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:so2pcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/so2pcDiffcompareWeek-1.png" alt="% difference in weekly mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -934,8 +940,8 @@ Figure 7.2: Ozone levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:o3compare">7.3</a> shows the most recent mean daily values compared to previous years.</p>
 <pre class="r"><code>plotDT &lt;- o3dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -964,7 +970,8 @@ Figure 7.3: Ozone levels, Southampton (daily mean)
 Figure 7.4: % difference in daily mean Ozone levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:o3pcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/o3pcDiffcompareWeek-1.png" alt="% difference in weekly mean Ozone levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -1011,8 +1018,8 @@ Figure 8.2: PM10 levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:pm10compare">8.3</a> shows the most recent mean daily values compared to previous years.</p>
 <pre class="r"><code>plotDT &lt;- pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -1031,8 +1038,8 @@ Figure 8.3: PM10 levels, Southampton (daily mean)
 </p>
 </div>
 <p>Figure <a href="#fig:pm10pcDiffcompareDay">8.4</a> and <a href="#fig:pm10pcDiffcompareWeek">8.5</a> show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).</p>
-<pre class="r"><code>compareYearsDiffPlotDaily(pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap, 
-    myParams$weekendCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotDaily(pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))</code></pre>
 <pre><code>## [1] &quot;Max drop %:-79&quot;
 ## [1] &quot;Max increase %:203&quot;</code></pre>
 <div class="figure"><span id="fig:pm10pcDiffcompareDay"></span>
@@ -1041,7 +1048,8 @@ Figure 8.3: PM10 levels, Southampton (daily mean)
 Figure 8.4: % difference in daily mean PM10 levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:pm10pcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/pm10pcDiffcompareWeek-1.png" alt="% difference in weekly mean PM10 levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -1088,17 +1096,17 @@ Figure 9.2: PM2.5 levels, Southampton (hourly, recent)
 </div>
 <p>Figure <a href="#fig:pm25compare">9.3</a> shows the most recent mean daily values compared to previous years.</p>
 <pre class="r"><code>plotDT &lt;- pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
-    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
-        site)]
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, 
+        compareYear, site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
 yMax &lt;- max(plotDT$mean)
 
 p &lt;- compareYearsPlot(plotDT, xVar = &quot;fixedDate&quot;, yVar = &quot;meanVal&quot;, colVar = &quot;compareYear&quot;)
-p &lt;- addLockdownDate(p, yMin, yMax) + geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) + labs(x = &quot;Date&quot;, 
-    y = &quot;Daily mean&quot;, caption = paste0(myParams$lockdownCap, myParams$weekendCap, &quot;\nReference line = WHO daily threshold (&quot;, 
-        myParams$dailyPm2.5Threshold_WHO, &quot;)&quot;))
+p &lt;- addLockdownDate(p, yMin, yMax) + geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) + 
+    labs(x = &quot;Date&quot;, y = &quot;Daily mean&quot;, caption = paste0(myParams$lockdownCap, myParams$weekendCap, 
+        &quot;\nReference line = WHO daily threshold (&quot;, myParams$dailyPm2.5Threshold_WHO, &quot;)&quot;))
 p &lt;- addWeekendsDate(p, yMin, yMax)
 p + facet_grid(site ~ .) + theme(strip.text.y.right = element_text(angle = 90))</code></pre>
 <div class="figure"><span id="fig:pm25compare"></span>
@@ -1108,8 +1116,8 @@ Figure 9.3: PM2.5 levels, Southampton (daily mean)
 </p>
 </div>
 <p>Figure <a href="#fig:pm25pcDiffcompareDay">9.4</a> and <a href="#fig:pm25pcDiffcompareWeek">9.5</a> show the % difference between the daily and weekly means for 2020 vs 2017-2019 (reference period).</p>
-<pre class="r"><code>compareYearsDiffPlotDaily(pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap, 
-    myParams$weekendCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotDaily(pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))</code></pre>
 <pre><code>## [1] &quot;Max drop %:-81&quot;
 ## [1] &quot;Max increase %:264&quot;</code></pre>
 <div class="figure"><span id="fig:pm25pcDiffcompareDay"></span>
@@ -1118,7 +1126,8 @@ Figure 9.3: PM2.5 levels, Southampton (daily mean)
 Figure 9.4: % difference in daily mean PM2.5 levels 2020 vs 2017-2019, Southampton
 </p>
 </div>
-<pre class="r"><code>compareYearsDiffPlotWeekly(pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + labs(caption = paste0(myParams$lockdownCap))</code></pre>
+<pre class="r"><code>compareYearsDiffPlotWeekly(pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &gt;= myParams$comparePlotCut]) + 
+    labs(caption = paste0(myParams$lockdownCap))</code></pre>
 <div class="figure"><span id="fig:pm25pcDiffcompareWeek"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/pm25pcDiffcompareWeek-1.png" alt="% difference in weekly mean PM2.5 levels 2020 vs 2017-2019, Southampton" width="672" />
 <p class="caption">
@@ -1972,8 +1981,8 @@ setkey(windSpeedDT, dateTimeUTC, site, source)
 
 windDT &lt;- windSpeedDT[windDirDT]
 windDT[, `:=`(rTime, hms::as_hms(dateTimeUTC))]
-p &lt;- ggplot2::ggplot(windDT[obsDate &gt; as.Date(&quot;2020-03-23&quot;)], aes(x = dateTimeUTC, y = ws, angle = -wd + 90, 
-    colour = ws)) + geom_text(label = &quot;→&quot;) + theme(legend.position = &quot;bottom&quot;) + guides(colour = guide_legend(title = &quot;Wind speed&quot;)) + 
+p &lt;- ggplot2::ggplot(windDT[obsDate &gt; as.Date(&quot;2020-03-23&quot;)], aes(x = dateTimeUTC, y = ws, angle = -wd + 
+    90, colour = ws)) + geom_text(label = &quot;→&quot;) + theme(legend.position = &quot;bottom&quot;) + guides(colour = guide_legend(title = &quot;Wind speed&quot;)) + 
     scale_color_continuous(high = &quot;#132B43&quot;, low = &quot;#56B1F7&quot;)  # normal blue reversed
 
 
@@ -1983,11 +1992,96 @@ p &lt;- addWeekendsDateTime(p, yMin, yMax)
 # p &lt;- addLockdownDateTime(p, yMin, yMax)
 p &lt;- p + labs(y = &quot;Wind speed&quot;, x = &quot;Time&quot;, caption = paste0(myParams$weekendCap)) + theme(axis.text.x = element_text(angle = 90, 
     hjust = 1, size = 9))
-p + xlim(lubridate::as_datetime(&quot;2020-03-23 23:59:59&quot;), NA)  # do this last otherwise adding the weekends takes the plot back to the earlierst weekend we annotate</code></pre>
+p + xlim(lubridate::as_datetime(&quot;2020-03-23 23:59:59&quot;), NA)  # do this last otherwise adding the weekends takes the plot back to the earliest weekend we annotate</code></pre>
 <div class="figure"><span id="fig:recentWind"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/recentWind-1.png" alt="Wind direction and speed in Southampton since 23rd March 2020" width="672" />
 <p class="caption">
 Figure 11.1: Wind direction and speed in Southampton since 23rd March 2020
+</p>
+</div>
+<p>Figure <a href="#fig:recentWindRose">11.2</a> shows a windrose for each of the periods of low/high pollutant levels visible in Figure <a href="#fig:no2pcDiffcompareDay">4.4</a>:</p>
+<ul>
+<li>26 March - 4 April (lower NO2)</li>
+<li>7 April - 12 April (higher NO2)</li>
+<li>16 April - 23 April (lower NO2)</li>
+</ul>
+<p>As we can see there are clear differences in the wind conditions.</p>
+<pre class="r"><code>sotonAirDT[, `:=`(aqPeriod, ifelse(obsDate &gt;= as.Date(&quot;2020-03-26&quot;) &amp; obsDate &lt;= as.Date(&quot;2020-04-04&quot;), 
+    &quot;Period 1 - Low: 26/3 - 4/4&quot;, NA))]
+sotonAirDT[, `:=`(aqPeriod, ifelse(obsDate &gt;= as.Date(&quot;2020-04-07&quot;) &amp; obsDate &lt;= as.Date(&quot;2020-04-12&quot;), 
+    &quot;Period 2 - High: 7/4 - 12/4&quot;, aqPeriod))]
+sotonAirDT[, `:=`(aqPeriod, ifelse(obsDate &gt;= as.Date(&quot;2020-04-16&quot;) &amp; obsDate &lt;= as.Date(&quot;2020-04-23&quot;), 
+    &quot;Period 3 - Low: 16/4 - 23/4&quot;, aqPeriod))]
+
+plotDT &lt;- sotonAirDT[!is.na(aqPeriod) &amp; (pollutant == &quot;ws&quot; | pollutant == &quot;wd&quot;) &amp; site %like% &quot;A33&quot;]
+
+t &lt;- plotDT[, .(start = min(dateTimeUTC), end = max(dateTimeUTC)), keyby = .(aqPeriod)]
+
+kableExtra::kable(t, caption = &quot;Check period start/end times&quot;) %&gt;% kable_styling()</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:recentWindRose">Table 11.1: </span>Check period start/end times
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+aqPeriod
+</th>
+<th style="text-align:left;">
+start
+</th>
+<th style="text-align:left;">
+end
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Period 1 - Low: 26/3 - 4/4
+</td>
+<td style="text-align:left;">
+2020-03-26
+</td>
+<td style="text-align:left;">
+2020-04-04 23:00:00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Period 2 - High: 7/4 - 12/4
+</td>
+<td style="text-align:left;">
+2020-04-07
+</td>
+<td style="text-align:left;">
+2020-04-12 23:00:00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Period 3 - Low: 16/4 - 23/4
+</td>
+<td style="text-align:left;">
+2020-04-16
+</td>
+<td style="text-align:left;">
+2020-04-23 23:00:00
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># make a dt openair will accept
+wdDT &lt;- plotDT[pollutant == &quot;wd&quot;, .(dateTimeUTC, site, wd = value, aqPeriod)]
+setkey(wdDT, dateTimeUTC, site, aqPeriod)
+wsDT &lt;- plotDT[pollutant == &quot;ws&quot;, .(dateTimeUTC, site, ws = value, aqPeriod)]
+setkey(wsDT, dateTimeUTC, site, aqPeriod)
+wrDT &lt;- wdDT[wsDT]
+openair::windRose(wrDT, type = &quot;aqPeriod&quot;)</code></pre>
+<div class="figure"><span id="fig:recentWindRose"></span>
+<img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/recentWindRose-1.png" alt="Wind rose for Southampton sites since 23rd March 2020" width="672" />
+<p class="caption">
+Figure 11.2: Wind rose for Southampton sites since 23rd March 2020
 </p>
 </div>
 </div>
@@ -2003,7 +2097,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNegNo2"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNegNo2-1.png" alt="Nitrogen Dioxide data availability and levels over time" width="672" />
 <p class="caption">
-Figure 11.2: Nitrogen Dioxide data availability and levels over time
+Figure 11.3: Nitrogen Dioxide data availability and levels over time
 </p>
 </div>
 <pre class="r"><code># dt,xvar, yvar,fillVar, yLab
@@ -2015,7 +2109,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNegNox"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNegNox-1.png" alt="Oxides of nitrogen data availability and levels over time" width="672" />
 <p class="caption">
-Figure 11.3: Oxides of nitrogen data availability and levels over time
+Figure 11.4: Oxides of nitrogen data availability and levels over time
 </p>
 </div>
 <pre class="r"><code># dt,xvar, yvar,fillVar, yLab
@@ -2027,7 +2121,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNegSo2"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNegSo2-1.png" alt="Sulphour Dioxide data availability and levels over time" width="672" />
 <p class="caption">
-Figure 11.4: Sulphour Dioxide data availability and levels over time
+Figure 11.5: Sulphour Dioxide data availability and levels over time
 </p>
 </div>
 <pre class="r"><code>tileDT &lt;- sotonAirDT[pollutant == &quot;o3&quot; &amp; dateTimeUTC &gt; as.Date(&quot;2020-02-01&quot;) &amp; !is.na(value)]
@@ -2038,7 +2132,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNego3"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNego3-1.png" alt="Availability and level of o3 data over time" width="672" />
 <p class="caption">
-Figure 11.5: Availability and level of o3 data over time
+Figure 11.6: Availability and level of o3 data over time
 </p>
 </div>
 <pre class="r"><code>tileDT &lt;- sotonAirDT[pollutant == &quot;pm10&quot; &amp; dateTimeUTC &gt; as.Date(&quot;2020-02-01&quot;) &amp; !is.na(value)]
@@ -2049,7 +2143,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNegPM10"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNegPM10-1.png" alt="Availability and level of PM 10 data over time" width="672" />
 <p class="caption">
-Figure 11.6: Availability and level of PM 10 data over time
+Figure 11.7: Availability and level of PM 10 data over time
 </p>
 </div>
 <pre class="r"><code>tileDT &lt;- sotonAirDT[pollutant == &quot;pm2.5&quot; &amp; dateTimeUTC &gt; as.Date(&quot;2020-02-01&quot;) &amp; !is.na(value)]
@@ -2060,7 +2154,7 @@ p + scale_x_datetime(date_breaks = &quot;7 day&quot;, date_labels = &quot;%a %d 
 <div class="figure"><span id="fig:testNegPM25"></span>
 <img src="sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020_files/figure-html/testNegPM25-1.png" alt="Availability and level of PM 2.5 data over time" width="672" />
 <p class="caption">
-Figure 11.7: Availability and level of PM 2.5 data over time
+Figure 11.8: Availability and level of PM 2.5 data over time
 </p>
 </div>
 </div>
@@ -2071,7 +2165,7 @@ Figure 11.7: Availability and level of PM 2.5 data over time
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 64.98 seconds ( 1.08 minutes).</p>
+<p>Analysis completed in 72.225 seconds ( 1.2 minutes).</p>
 <p>R packages used in this report:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>
@@ -2079,11 +2173,9 @@ elapsed &lt;- t[[3]]</code></pre>
 <li>here - <span class="citation">(Müller 2017)</span></li>
 <li>kableExtra - <span class="citation">(Zhu 2018)</span></li>
 <li>lubridate - <span class="citation">(Grolemund and Wickham 2011)</span></li>
-<li>skimr - <span class="citation">(Arino de la Rubia et al. 2017)</span></li>
-</ul>
-<p>R packages used in data download and processing:</p>
-<ul>
 <li>openAir - <span class="citation">(Carslaw and Ropkins 2012)</span></li>
+<li>skimr - <span class="citation">(Arino de la Rubia et al. 2017)</span></li>
+<li>viridis - <span class="citation">(Garnier 2018)</span></li>
 </ul>
 </div>
 <div id="references" class="section level1 unnumbered">
@@ -2097,6 +2189,9 @@ elapsed &lt;- t[[3]]</code></pre>
 </div>
 <div id="ref-data.table">
 <p>Dowle, M, A Srinivasan, T Short, S Lianoglou with contributions from R Saporta, and E Antonyan. 2015. <em>Data.table: Extension of Data.frame</em>. <a href="https://CRAN.R-project.org/package=data.table">https://CRAN.R-project.org/package=data.table</a>.</p>
+</div>
+<div id="ref-viridis">
+<p>Garnier, Simon. 2018. <em>Viridis: Default Color Maps from ’Matplotlib’</em>. <a href="https://CRAN.R-project.org/package=viridis">https://CRAN.R-project.org/package=viridis</a>.</p>
 </div>
 <div id="ref-lubridate">
 <p>Grolemund, Garrett, and Hadley Wickham. 2011. “Dates and Times Made Easy with lubridate.” <em>Journal of Statistical Software</em> 40 (3): 1–25. <a href="http://www.jstatsoft.org/v40/i03/">http://www.jstatsoft.org/v40/i03/</a>.</p>
