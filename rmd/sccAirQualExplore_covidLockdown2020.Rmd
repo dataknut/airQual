@@ -49,7 +49,7 @@ knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what 
 # Load Packages ----
 rmdLibs <- c("ggplot2",
             "kableExtra",
-            "plotly",
+            "openair",
             "skimr",
             "viridis")
 
@@ -502,11 +502,11 @@ kableExtra::kable(t, caption = "Sites, data source and number of valid observati
 We use this data to compare:
 
  * pre and during-lockdown air quality measures
- * air quality measures during lockdown 2020 with average measures for the preceding 3 years (2017-2019)
+ * air quality measures during lockdown 2020 with average measures for the same time periods in the preceding 3 years (2017-2019)
 
-It should be noted that air pollution levels on any given day or period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the effects of a reduction in source strength from the effects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see Figure \@ref(fig:recentWind)).
+It should be noted that air pollution levels in any given period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the affects of a reduction in source strength from the affects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see Figure \@ref(fig:recentWind)).
 
-Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound effects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis.
+Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound affects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis of the affect of lockdown on air quality in Southampton.
 
 
 For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
@@ -597,7 +597,7 @@ p + facet_grid(site ~ .) +
   theme(strip.text.y.right = element_text(angle = 90))
 ```
 
-Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show the % difference between the daily  means for 2020 vs 2017-2019 (reference period). In both cases we can see that NO2 levels in 2020 were generally _already_ lower than the reference period yet are _not_ consistently lower even during the lockdown period. The effects of covid lockdown are not clear cut...
+Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show the % difference between the daily  means for 2020 vs 2017-2019 (reference period). In both cases we can see that NO2 levels in 2020 were generally _already_ lower than the reference period yet are _not_ consistently lower even during the lockdown period. The affects of covid lockdown are not clear cut...
 
 ```{r no2pcDiffcompareDay, fig.cap="Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
 
@@ -612,7 +612,7 @@ compareYearsDiffPlotWeekly(no2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and meteorological effects
+> Beware seasonal trends and meteorological affects
 
 
 # Oxides of Nitrogen (nox)
@@ -785,7 +785,7 @@ compareYearsDiffPlotWeekly(so2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and meteorological effects
+> Beware seasonal trends and meteorological affects
 
 # Ozone
 
@@ -876,7 +876,7 @@ compareYearsDiffPlotWeekly(no2dt[site %like% "via AURN" & fixedDate >= myParams$
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and meteorological effects
+> Beware seasonal trends and meteorological affects
 
 # PM 10
 
@@ -965,7 +965,7 @@ compareYearsDiffPlotWeekly(pm10dt[site %like% "via AURN" & fixedDate >= myParams
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and meteorological effects
+> Beware seasonal trends and meteorological affects
 
 # PM 2.5
 
@@ -1053,7 +1053,84 @@ compareYearsDiffPlotWeekly(pm25dt[site %like% "via AURN" & fixedDate >= myParams
   labs(caption = paste0(myParams$lockdownCap))
 ```
 
-> Beware seasonal trends and meteorological effects
+> Beware seasonal trends and meteorological affects
+
+# Wind direction and speed
+
+As noted above, air pollution levels in any given time period are highly dependent on the prevailing meteorological conditions.
+
+Figure \@ref(fig:recentWind) shows the wind direction and speed over the period of lockdown and can be compared with the equivalent pollutant level plots above such as Figure \@ref(fig:no2recent).
+
+```{r recentWind, fig.cap="Wind direction and speed in Southampton since 23rd March 2020"}
+# windDT[, .(mean = mean(wd)), keyby = .(site)] # they're identical across AURN sites
+windDirDT <- fixedDT[pollutant == "wd" & site %like% "A33"]
+windDirDT[, `:=`(wd, value)]
+setkey(windDirDT, dateTimeUTC, site, source)
+windSpeedDT <- fixedDT[pollutant == "ws" & site %like% "A33"]
+windSpeedDT[, `:=`(ws, value)]
+setkey(windSpeedDT, dateTimeUTC, site, source)
+
+windDT <- windSpeedDT[windDirDT]
+windDT[, `:=`(rTime, hms::as_hms(dateTimeUTC))]
+p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], aes(x = dateTimeUTC, y = ws, angle = -wd + 90, 
+                                                                  colour = ws)) + geom_text(label = "→") + theme(legend.position = "bottom") + guides(colour = guide_legend(title = "Wind speed")) + 
+  scale_color_continuous(high = "#132B43", low = "#56B1F7") # normal blue reversed
+
+
+yMin <- min(windDT[obsDate > as.Date("2020-03-23")]$ws)
+yMax <- max(windDT[obsDate > as.Date("2020-03-23")]$ws)
+p <- addWeekendsDateTime(p, yMin, yMax)
+#p <- addLockdownDateTime(p, yMin, yMax)
+p <- p + labs(y = "Wind speed", 
+         x = "Time", 
+         caption = paste0(myParams$weekendCap)) + 
+  theme(axis.text.x=element_text(angle=90, hjust=1, size = 9))
+p +
+  xlim(lubridate::as_datetime("2020-03-23 23:59:59"), 
+       NA)  # do this last otherwise adding the weekends takes the plot back to the earliest weekend we annotate
+```
+
+Figure \@ref(fig:recentWindRose) shows a [windrose](https://www.rdocumentation.org/packages/openair/versions/2.7-2/topics/windRose) for each of the periods of low/high pollutant levels visible in Figure \@ref(fig:no2pcDiffcompareDay):
+
+ * 26 March - 4 April (lower NO2)
+ * 7 April - 12 April (higher NO2)
+ * 16 April - 23 April (lower NO2)
+
+The windroses indicate the direction the prevailing wind was blowing from and the colour of the 'paddles' indicates the strength while the length of the paddles indicates the proportion of observations. As we can see there are clear differences in the wind conditions which correlate with the pollution patterns observed:
+
+ * the first period with low NO2 was dominated by north-north easterly winds (likely to bring city and motorway air); 
+ * the second period when NO2 and particulates were high was dominated by low speed south easterly winds (bringing continental air);
+ * the third period when NO2 was low was again dominated by north easterly winds.
+
+```{r recentWindRose, fig.cap="Wind rose for Southampton sites since 23rd March 2020"}
+
+sotonAirDT[, aqPeriod := ifelse(obsDate >= as.Date("2020-03-26") & 
+                                  obsDate <= as.Date("2020-04-04"),
+                               "Period 1 - Low: 26/3 - 4/4", NA)]
+sotonAirDT[, aqPeriod := ifelse(obsDate >= as.Date("2020-04-07") & 
+                                  obsDate <= as.Date("2020-04-12"),
+                               "Period 2 - High: 7/4 - 12/4", aqPeriod)]
+sotonAirDT[, aqPeriod := ifelse(obsDate >= as.Date("2020-04-16") & 
+                                  obsDate <= as.Date("2020-04-23"),
+                               "Period 3 - Low: 16/4 - 23/4", aqPeriod)]
+
+plotDT <- sotonAirDT[!is.na(aqPeriod) & (pollutant == "ws" | pollutant == "wd") & site %like% "A33"]
+
+t <- plotDT[, .(start = min(dateTimeUTC),
+           end = max(dateTimeUTC)), keyby = .(aqPeriod)]
+
+kableExtra::kable(t, caption = "Check period start/end times") %>%
+  kable_styling()
+  
+
+# make a dt openair will accept
+wdDT <- plotDT[pollutant == "wd", .(dateTimeUTC, site, wd = value, aqPeriod)]
+setkey(wdDT, dateTimeUTC, site, aqPeriod)
+wsDT <- plotDT[pollutant == "ws", .(dateTimeUTC, site, ws = value, aqPeriod)]
+setkey(wsDT, dateTimeUTC, site, aqPeriod)
+wrDT <- wdDT[wsDT]
+openair::windRose(wrDT, type = "aqPeriod")
+```
 
 # Save data
 
@@ -1101,39 +1178,6 @@ NB:
 We have also produced [wind/pollution roses](sccAirQualExplore_windroses_Wind and pollution roses 2016-2020 (AURN data).html) for these sites.
 
 # Annex
-
-## Wind direction and speed
-
-Figure \@ref(fig:recentWind) shows the wind direction and speed over the period of lockdown and can be compared with the equivalent pollutant level plots above such as Figure \@ref(fig:no2recent).
-
-```{r recentWind, fig.cap="Wind direction and speed in Southampton since 23rd March 2020"}
-# windDT[, .(mean = mean(wd)), keyby = .(site)] # they're identical across AURN sites
-windDirDT <- fixedDT[pollutant == "wd" & site %like% "A33"]
-windDirDT[, `:=`(wd, value)]
-setkey(windDirDT, dateTimeUTC, site, source)
-windSpeedDT <- fixedDT[pollutant == "ws" & site %like% "A33"]
-windSpeedDT[, `:=`(ws, value)]
-setkey(windSpeedDT, dateTimeUTC, site, source)
-
-windDT <- windSpeedDT[windDirDT]
-windDT[, `:=`(rTime, hms::as_hms(dateTimeUTC))]
-p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], aes(x = dateTimeUTC, y = ws, angle = -wd + 90, 
-                                                                  colour = ws)) + geom_text(label = "→") + theme(legend.position = "bottom") + guides(colour = guide_legend(title = "Wind speed")) + 
-  scale_color_continuous(high = "#132B43", low = "#56B1F7") # normal blue reversed
-
-
-yMin <- min(windDT[obsDate > as.Date("2020-03-23")]$ws)
-yMax <- max(windDT[obsDate > as.Date("2020-03-23")]$ws)
-p <- addWeekendsDateTime(p, yMin, yMax)
-#p <- addLockdownDateTime(p, yMin, yMax)
-p <- p + labs(y = "Wind speed", 
-         x = "Time", 
-         caption = paste0(myParams$weekendCap)) + 
-  theme(axis.text.x=element_text(angle=90, hjust=1, size = 9))
-p +
-  xlim(lubridate::as_datetime("2020-03-23 23:59:59"), 
-       NA)  # do this last otherwise adding the weekends takes the plot back to the earlierst weekend we annotate
-```
 
 ## Missing data {#annexMissing}
 
@@ -1237,11 +1281,9 @@ R packages used in this report:
  * here - [@here]
  * kableExtra - [@kableExtra]
  * lubridate - [@lubridate]
- * skimr - [@skimr]
-
-R packages used in data download and processing:
-
  * openAir - [@openair]
+ * skimr - [@skimr]
+ * viridis - [@viridis]
  
 # References
 
