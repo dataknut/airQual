@@ -178,6 +178,9 @@ myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air qualit
 # filter the data here
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
 
+# test what we have
+sotonAirDT[!is.na(value), .(maxDate = max(dateTimeUTC)), keyby = .(site, source)]
+
 # > run report ----
 #
 doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically

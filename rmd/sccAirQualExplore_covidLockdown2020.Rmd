@@ -11,7 +11,7 @@ output:
   bookdown::html_document2:
     fig_caption: yes
     code_folding: hide
-    self_contained: false # https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies so we have plots seperately for easy import to word
+    self_contained: true # set to false if you want plots seperately for easy import to word https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies
     number_sections: yes
     toc: yes
     toc_depth: 2
