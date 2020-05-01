@@ -566,7 +566,7 @@ addWeekendsDate(p, yMin, yMax) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
 
-Figure \@ref(fig:no2compare) shows the most recent mean daily values compared to previous years for thw two AURN sites which do not have missing data. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.
+Figure \@ref(fig:no2compare) shows the most recent mean daily values compared to previous years for the two AURN sites which do not have missing data. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.
 
 ```{r no2compare, fig.cap="Comparative Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton (daily mean)"}
 plotDT <- no2dt[site %like% "via AURN" & fixedDate <= lubridate::today() & 
