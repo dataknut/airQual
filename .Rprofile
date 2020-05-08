@@ -23,7 +23,7 @@ if(aqParams$user == "ben" & aqParams$sysname == "Darwin"){
 }
 if(aqParams$user == "ba1e12" & startsWith(aqParams$nodename, "srv02405")){
   # UoS RStudio server
-  aqParams$SSCdataPath <- path.expand("/mnt/research_filestore/resource/CivilEnvResearch/Public/SERG/data/airQual")
+  aqParams$SSCdataPath <- path.expand("/mnt/SERG_data/airqual")
 }
 
 message("We're ", aqParams$user, " using " , aqParams$sysname, " on ", aqParams$nodename)

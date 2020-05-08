@@ -43,7 +43,8 @@ locs$es2 <- "Eastleigh - Steele Close (near M3)"
 locs$es3 <- "Eastleigh - The Point (Centre)"
 
 baseUrl <- "http://www.hantsair.org.uk/hampshire/asp/DownloadSite.asp?la=Southampton"
-dataPath <- path.expand("~/Data/SCC/airQual/hantsAir/")
+#dataPath <- path.expand("~/Data/SCC/airQual/hantsAir/")
+dataPath <- path.expand(paste0(aqParams$SSCdataPath, "/hantsAir/"))
 
 metaDT <- data.table::data.table() # meta data bucket
 
