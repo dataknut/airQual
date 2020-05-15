@@ -44,12 +44,12 @@ myParams$hourlyNo2Threshold_WHO <- 200
 myParams$dailySo2Threshold_WHO <- 20
 myParams$tenMSo2Threshold_WHO <- 500
 
-myParams$sccDataPath <- path.expand(paste0(aqParams$SSCdataPath, "/myAir/"))
+myParams$sccDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/myAir/"))
 #myParams$sccDataPath <- path.expand("~/Data/SCC/airQual/myAir/")
-myParams$hantsAirDataPath <- path.expand(paste0(aqParams$SSCdataPath, "/hantsAir/"))
+myParams$hantsAirDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/hantsAir/"))
 #path.expand("~/Data/SCC/airQual/hantsAir/")
 #myParams$aurnDataPath <- path.expand("~/Data/SCC/airQual/aurn/")
-myParams$aurnDataPath <- path.expand(paste0(aqParams$SSCdataPath, "/aurn/"))
+myParams$aurnDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/aurn/"))
 
 # Load data ----
 # > SSC data ----
