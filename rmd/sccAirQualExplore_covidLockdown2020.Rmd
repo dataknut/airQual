@@ -324,6 +324,13 @@ addWeekendsDate <- function(p, yMin, yMax){
                     xmax = as.Date("2020-05-04"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("rect", xmin = as.Date("2020-05-08"),
+                    xmax = as.Date("2020-05-11"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("text", x = as.Date("2020-05-08"),
+                    y = yMax*myParams$labelPos,
+                    label = "VE Day") # VE Day
   return(p)
 }
 
@@ -367,6 +374,13 @@ addWeekendsDateTime <- function(p, yMin, yMax){
                     xmax = lubridate::as_datetime("2020-05-03 23:59:59"),
                     ymin = yMin, ymax = yMax,
                     alpha = myParams$weAlpha, fill = myParams$weFill)
+    p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-05-08 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-05-10 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill)
+  p <- p + annotate("text", x = lubridate::as_datetime("2020-05-08 00:00:00"),
+                    y = yMax*myParams$labelPos,
+                    label = "VE Day") # VE Day
   return(p)
 }
 ```
