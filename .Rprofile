@@ -19,15 +19,15 @@ aqParams$user <- aqParams$info[[7]]
 # > Set data path ----
 if(aqParams$user == "ben" & aqParams$sysname == "Darwin"){
   # BA laptop
-  aqParams$SSCdataPath <- path.expand("~/Data/SSC/airQual")
+  aqParams$SCCdataPath <- path.expand("~/Data/SCC/airQual")
 }
 if(aqParams$user == "ba1e12" & startsWith(aqParams$nodename, "srv02405")){
   # UoS RStudio server
-  aqParams$SSCdataPath <- path.expand("/mnt/SERG_data/airqual")
+  aqParams$SCCdataPath <- path.expand("/mnt/SERG_data/airqual")
 }
 
 message("We're ", aqParams$user, " using " , aqParams$sysname, " on ", aqParams$nodename)
-message("=> Base data path : ", aqParams$SSCdataPath)
+message("=> Base data path : ", aqParams$SCCdataPath)
 
 # > Misc data ----
 aqParams$bytesToMb <- 0.000001
