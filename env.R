@@ -1,4 +1,4 @@
-# file sourced by loading the airQual package
+# file sourced by airQual::setup()
 
 # Package parameters ----
 
