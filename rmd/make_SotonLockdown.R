@@ -4,6 +4,7 @@
 localLibs <- c("rmarkdown",
                "bookdown",
                "data.table",
+               "drake", # what gets done stays done
                "here", # where are we?
                "lubridate", # fixing dates & times
                "utils" # for reading .gz files with data.table
@@ -51,100 +52,155 @@ myParams$hantsAirDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/hantsAir
 #myParams$aurnDataPath <- path.expand("~/Data/SCC/airQual/aurn/")
 myParams$aurnDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/aurn/"))
 
-# Load data ----
-# > SSC data ----
-# do not use, no longer updting from my-air
-# files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
-# l <- lapply(files, data.table::fread)
-# origDataDT <- rbindlist(l, fill = TRUE) # rbind them
-# 
-# origDataDT$MeasurementDateGMT <- NULL # not needed
-# origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
-# l <- NULL # not needed
-# 
-# lDT <- data.table::melt(origDataDT,
-#                         id.vars=c("site","dateTimeUTC"),
-#                         measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
-#                         value.name = "value" # varies 
-# )
-# 
-# lDT[, obsDate := lubridate::date(dateTimeUTC)]
-# lDT[, source := "southampton.my-air.uk"]
-# # map to AURN definitions
-# lDT[, pollutant := as.character(variable)]
-# lDT[, pollutant := ifelse(pollutant == "oz", "o3", pollutant)]
-# lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
+# Functions
+loadSSCData <- function(){
+  # > SSC data ----
+  # do not use, no longer updting from my-air
+  # files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
+  # l <- lapply(files, data.table::fread)
+  # origDataDT <- rbindlist(l, fill = TRUE) # rbind them
+  # 
+  # origDataDT$MeasurementDateGMT <- NULL # not needed
+  # origDataDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)] # may not laod as such
+  # l <- NULL # not needed
+  # 
+  # lDT <- data.table::melt(origDataDT,
+  #                         id.vars=c("site","dateTimeUTC"),
+  #                         measure.vars = c("co","no2","nox","oz","pm10","pm2_5","so2"),
+  #                         value.name = "value" # varies 
+  # )
+  # 
+  # lDT[, obsDate := lubridate::date(dateTimeUTC)]
+  # lDT[, source := "southampton.my-air.uk"]
+  # # map to AURN definitions
+  # lDT[, pollutant := as.character(variable)]
+  # lDT[, pollutant := ifelse(pollutant == "oz", "o3", pollutant)]
+  # lDT[, pollutant := ifelse(pollutant == "pm2_5", "pm2.5", pollutant)]
+  
+  # hantsAir data
+  files <- list.files(paste0(myParams$hantsAirDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
+  # could limit this to just 2017 ->
+  l <- lapply(files, data.table::fread)
+  dt <- rbindlist(l, fill = TRUE) # rbind them
+  l <- NULL
+  dt[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)]
+  dt[, ratified := `Provisional or Ratified`]
+  dt[, value := as.numeric(value)] # to match AURN
+  dt[, pollutant := ifelse(pollutant == "NO","no" , pollutant)] # fix to AURN
+  dt[, pollutant := ifelse(pollutant == "NO2","no2" , pollutant)] # fix to AURN
+  dt[, pollutant := ifelse(pollutant == "NOX","nox" , pollutant)] # fix to AURN
+  dt[, pollutant := ifelse(pollutant == "PM10","pm10" , pollutant)] # fix to AURN
+  dt[, pollutant := ifelse(pollutant == "PM25","pm2.5" , pollutant)] # fix to AURN
+  dt[, pollutant := ifelse(pollutant == "SO2","sp2" , pollutant)] # fix to AURN
+  return(dt)
+}
 
-# hantsAir data
-files <- list.files(paste0(myParams$hantsAirDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
-# could limit this to just 2017 ->
-l <- lapply(files, data.table::fread)
-hantsAirDT <- rbindlist(l, fill = TRUE) # rbind them
-hantsAirDT[, dateTimeUTC := lubridate::as_datetime(dateTimeUTC)]
-hantsAirDT[, ratified := `Provisional or Ratified`]
-hantsAirDT[, value := as.numeric(value)] # to match AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "NO","no" , pollutant)] # fix to AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "NO2","no2" , pollutant)] # fix to AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "NOX","nox" , pollutant)] # fix to AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "PM10","pm10" , pollutant)] # fix to AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "PM25","pm2.5" , pollutant)] # fix to AURN
-hantsAirDT[, pollutant := ifelse(pollutant == "SO2","sp2" , pollutant)] # fix to AURN
+loadAURNData <- function(){
+  # > AURN data ----
+  # Ambient Temperature
+  # Barometric pressure
+  # Carbon monoxide
+  # Daily measured PM10 (uncorrected)
+  # Daily measured PM2.5 (uncorrected)
+  # Modelled Temperature
+  # Modelled Wind Direction
+  # Modelled Wind Speed
+  # Nitric oxide = no?
+  # Nitrogen dioxide = no2?
+  # Nitrogen oxides as nitrogen dioxide = nox?
+  # Non-volatile PM10 (Hourly measured)
+  # Non-volatile PM2.5 (Hourly measured)
+  # Ozone
+  # PM10 Ambient pressure measured
+  # PM10 Ambient Temperature
+  # PM2.5 Ambient Preasure
+  # PM2.5 Ambient Temperature
+  # PM10 particulate matter (Daily measured)
+  # PM10 particulate matter (Hourly measured)
+  # PM1 particulate matter (Hourly measured)
+  # PM2.5 particulate matter (Daily measured)
+  # PM2.5 particulate matter (Hourly measured)
+  # Rainfall
+  # Relative Humidity
+  # Sulphur dioxide
+  # Total Particulates
+  # Volatile PM10 (Hourly measured)
+  # Volatile PM2.5 (Hourly measured)
+  # Wind Direction
+  # Wind Speed
+  
+  files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.csv.gz", full.names = TRUE)
+  l <- lapply(files, data.table::fread)
+  dt <- rbindlist(l, fill = TRUE) # rbind them
+  
+  dt[, dateTimeUTC := lubridate::as_datetime(date)]
+  dt[, obsDate := lubridate::date(dateTimeUTC)]
+  dt[, ratified := "?"]
+  dt[, source := "AURN"]
+  return(dt)
+}
 
-# > AURN data ----
-# Ambient Temperature
-# Barometric pressure
-# Carbon monoxide
-# Daily measured PM10 (uncorrected)
-# Daily measured PM2.5 (uncorrected)
-# Modelled Temperature
-# Modelled Wind Direction
-# Modelled Wind Speed
-# Nitric oxide = no?
-# Nitrogen dioxide = no2?
-# Nitrogen oxides as nitrogen dioxide = nox?
-# Non-volatile PM10 (Hourly measured)
-# Non-volatile PM2.5 (Hourly measured)
-# Ozone
-# PM10 Ambient pressure measured
-# PM10 Ambient Temperature
-# PM2.5 Ambient Preasure
-# PM2.5 Ambient Temperature
-# PM10 particulate matter (Daily measured)
-# PM10 particulate matter (Hourly measured)
-# PM1 particulate matter (Hourly measured)
-# PM2.5 particulate matter (Daily measured)
-# PM2.5 particulate matter (Hourly measured)
-# Rainfall
-# Relative Humidity
-# Sulphur dioxide
-# Total Particulates
-# Volatile PM10 (Hourly measured)
-# Volatile PM2.5 (Hourly measured)
-# Wind Direction
-# Wind Speed
+fixDates <- function(dt){
+  dt[, obsDate := lubridate::date(dateTimeUTC)]
+  dt[, year := lubridate::year(dateTimeUTC)]
+  dt[, origDoW := lubridate::wday(dateTimeUTC, label = TRUE)]
+  dt[, month := lubridate::month(obsDate)]
+  
+  dt[, site := ifelse(site == "Southampton A33", "Southampton A33\n(via AURN)", site)]
+  dt[, site := ifelse(site == "Southampton Centre", "Southampton Centre\n(via AURN)", site)]
+  
+  extractDT <- dt[!is.na(value)] # leave out 2016 so we compare with previous 3 years
+  
+  # this is such a kludge
+  extractDT[, decimalDate := lubridate::decimal_date(obsDate)] # gives year.% of year
+  
+  # set to 2020 'dates'
+  extractDT[, date2020 := lubridate::as_date(lubridate::date_decimal(2020 + (decimalDate - year)))] # sets 'year' portion to 2020 so the lockdown annotation works
+  extractDT[, day2020 := lubridate::wday(date2020, label = TRUE)] # 
+  
+  # 2020 Jan 1st = Weds
+  dt2020 <- extractDT[year == 2020] 
+  dt2020[, fixedDate := obsDate] # no need to change
+  dt2020[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
+  # table(dt2020$origDoW, dt2020$fixedDoW)
+  # head(dt2020[origDoW != fixedDoW])
+  
+  # shift to the closest aligning day
+  # 2019 Jan 1st = Tues
+  dt2019 <- extractDT[year == 2019] 
+  dt2019[, fixedDate := date2020 -1]
+  dt2019[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
+  # table(dt2019$origDoW, dt2019$fixedDoW)
+  # head(dt2019[origDoW != fixedDoW])
+  
+  # 2018 Jan 1st = Mon
+  dt2018 <- extractDT[year == 2018] 
+  dt2018[, fixedDate := date2020 - 2]
+  dt2018[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
+  # table(dt2018$origDoW, dt2018$fixedDoW)
+  # head(dt2018[origDoW != fixedDoW])
+  
+  # 2017 Jan 1st = Sat
+  dt2017 <- extractDT[year == 2017] 
+  dt2017[, fixedDate := date2020 - 3]
+  dt2017[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
+  # table(dt2017$origDoW, dt2017$fixedDoW)
+  # head(dt2017[origDoW != fixedDoW])
+  
+  fixedDT <- rbind(dt2017, dt2018, dt2019, dt2020) # leave out 2016 for now
+  
+  fixedDT[, fixedDate := lubridate::as_date(fixedDate)]
+  fixedDT[, fixedDoW := lubridate::wday(fixedDate,label = TRUE)]
+  
+  
+  fixedDT[, compareYear := ifelse(year == 2020, "2020",
+                                  "2017-2019")]
+  
+  # these should match 
+  #table(fixedDT$origDoW, fixedDT$fixedDoW)
+  return(fixedDT)
+}
 
-files <- list.files(paste0(myParams$aurnDataPath, "processed/"), pattern = "*long.csv.gz", full.names = TRUE)
-l <- lapply(files, data.table::fread)
-aurnDT <- rbindlist(l, fill = TRUE) # rbind them
-
-aurnDT[, dateTimeUTC := lubridate::as_datetime(date)]
-aurnDT[, obsDate := lubridate::date(dateTimeUTC)]
-aurnDT[, ratified := "?"]
-aurnDT[, source := "AURN"]
-
-# rbind the matching columns
-sotonAirDT <- rbind(aurnDT[, .(dateTimeUTC, pollutant, source, site, value, ratified)],
-                    hantsAirDT[, .(dateTimeUTC, pollutant, source, site, value, ratified)])
-
-# test
-sotonAirDT[, year := lubridate::year(dateTimeUTC)]
-with(sotonAirDT, table(year, source))
-
-with(sotonAirDT, table(pollutant, source))
-
-sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
-
-# Functions ----
 doReport <- function(rmd, vers){
   rmdFile <- paste0(myParams$projLoc, "/rmd/", rmd, ".Rmd")
   rmarkdown::render(input = rmdFile,
@@ -156,9 +212,32 @@ doReport <- function(rmd, vers){
   )
 }
 
+# drake plan
+plan <- drake::drake_plan(
+  sotonAirData = loadSSCData(),
+  aurnData = loadAURNData(),
+  allData = rbind(aurnData[, .(dateTimeUTC, pollutant, source, site, value, ratified)],
+                  sotonAirData[, .(dateTimeUTC, pollutant, source, site, value, ratified)]),
+  fixedData = fixDates(allData)
+)
+
+plan # test the plan
+make(plan) # run the plan, re-loading data if needed
+
+# get the data back
+sotonAirDT <- drake::readd(allData)
+fixedDT <- drake::readd(fixedData)
+
+# test
+sotonAirDT[, year := lubridate::year(dateTimeUTC)]
+with(sotonAirDT, table(year, source))
+
+with(sotonAirDT, table(pollutant, source))
+
+sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
 
 
-# > settings ----
+# > Rmd settings ----
 
 #> yaml ----
 myParams$title <- "Air Quality in Southampton (UK)"
@@ -186,4 +265,4 @@ sotonAirDT[!is.na(value), .(maxDate = max(dateTimeUTC)), keyby = .(site, source)
 
 # > run report ----
 #
-doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
+#doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
