@@ -1,4 +1,6 @@
 # make file. Makes everything
+library(airQual)
+airQual::setup()
 
 # refresh the data
 source("dataProcessing/getAURNData.R")
