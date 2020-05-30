@@ -1,4 +1,4 @@
-#' \code{addLockdownDateTime} takes a plot where the x axis is a daterTime and adds a 
+#' \code{addLockdownRectDateTime} takes a plot where the x axis is a daterTime and adds a 
 #' rectangle to denote lockdown.
 #' 
 #' It assumes `myParams$lockDownStartDate` and `myParams$lockDownEndDate` define 
@@ -13,7 +13,7 @@
 #' @export
 #' @family plots
 #'
-addLockdownDateTime <- function(p, yMin, yMax){
+addLockdownRectDateTime <- function(p, yMin, yMax){
   # assumes p has x = obsDateTime
   # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
   #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
