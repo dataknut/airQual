@@ -1,5 +1,7 @@
 # Makes the data analysis report
 # Saves result 
+library(airQual)
+airQual::setup() # in case we didn't earlier
 # Load libraries needed across all .Rmd files ----
 localLibs <- c("rmarkdown",
                "bookdown",
@@ -14,6 +16,7 @@ library(dkUtils)
 dkUtils::loadLibraries(localLibs)              # Load script specific packages
 
 # Project Settings ----
+update <- "please" # editing this forces drake to re-load the data
 myParams <- list()
 myParams$projLoc <- here::here()
 
@@ -53,7 +56,7 @@ myParams$hantsAirDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/hantsAir
 myParams$aurnDataPath <- path.expand(paste0(aqParams$SCCdataPath, "/aurn/"))
 
 # Functions
-loadSSCData <- function(){
+loadSSCData <- function(update){
   # > SSC data ----
   # do not use, no longer updting from my-air
   # files <- list.files(paste0(myParams$sccDataPath, "processed/"), pattern = "*.gz", full.names = TRUE)
@@ -95,7 +98,7 @@ loadSSCData <- function(){
   return(dt)
 }
 
-loadAURNData <- function(){
+loadAURNData <- function(update){
   # > AURN data ----
   # Ambient Temperature
   # Barometric pressure
@@ -198,6 +201,7 @@ fixDates <- function(dt){
   
   # these should match 
   #table(fixedDT$origDoW, fixedDT$fixedDoW)
+  fixedDT[, weekNo := lubridate::week(fixedDate)]
   return(fixedDT)
 }
 
@@ -214,8 +218,8 @@ doReport <- function(rmd, vers){
 
 # drake plan
 plan <- drake::drake_plan(
-  sotonAirData = loadSSCData(),
-  aurnData = loadAURNData(),
+  sotonAirData = loadSSCData(update),
+  aurnData = loadAURNData(update),
   allData = rbind(aurnData[, .(dateTimeUTC, pollutant, source, site, value, ratified)],
                   sotonAirData[, .(dateTimeUTC, pollutant, source, site, value, ratified)]),
   fixedData = fixDates(allData)
@@ -261,8 +265,13 @@ myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air qualit
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
 
 # test what we have
-sotonAirDT[!is.na(value), .(maxDate = max(dateTimeUTC)), keyby = .(site, source)]
+sotonAirDT[!is.na(value), .(minDate = min(dateTimeUTC),
+                            maxDate = max(dateTimeUTC)
+                            ), 
+           keyby = .(site, source)]
+
+with(sotonAirDT, table(site, year, useNA = "always"))
 
 # > run report ----
 #
-#doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
+doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
