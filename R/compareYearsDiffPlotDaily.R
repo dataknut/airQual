@@ -6,32 +6,19 @@
 #' Should use scales::percent() but doesn't.
 #'
 #' @param dt the data to plot
+#' 
+#' @import data.table
 #' @author Ben Anderson, \email{b.anderson@@soton.ac.uk} (original)
 #' @export
 #' @family plots
 #'
 compareYearsDiffPlotDaily <- function(dt){
-  baseDT <- dt[compareYear == "2017-2019", .(baseMean = mean(value),
-                                             baseMedian = median(value)), 
-               keyby = .(fixedDate, fixedDoW, compareYear)]
-  testDT <- dt[compareYear == "2020", .(testMean = mean(value),
-                                        testMedian = median(value)), 
-               keyby = .(fixedDate, fixedDoW, compareYear, site)]
-  
-  setkey(baseDT, fixedDate, fixedDoW)
-  setkey(baseDT, fixedDate, fixedDoW)
-  
-  plotDT <- baseDT[testDT] # auto drops non matches to 2020
-  plotDT[, pcDiffMean := 100*(testMean - baseMean)/baseMean] # -ve value indicates lower
-  plotDT[, pcDiffMedian:= 100*(testMedian - baseMedian)/baseMedian] # -ve value indicates lower
-  plotDT[, pos := ifelse(pcDiffMean > 0 , "Pos", "Neg")] # want to colour the line sections - how?
-  # final plot - adds annotations
   # use means for consistency with comparison plots where we use WHO thresholds (means)
-  yMin <- min(plotDT$pcDiffMean)
+  yMin <- min(dt$pcDiffMean)
   print(paste0("Max drop %:", round(yMin)))
-  yMax <- max(plotDT$pcDiffMean)
+  yMax <- max(dt$pcDiffMean)
   print(paste0("Max increase %:", round(yMax)))
-  p <- ggplot2::ggplot(plotDT, aes(x = fixedDate, y = pcDiffMean 
+  p <- ggplot2::ggplot(dt, aes(x = fixedDate, y = pcDiffMean 
                                    #color = pos, group=NA)
   )
   ) +
