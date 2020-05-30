@@ -16,7 +16,7 @@ library(lubridate)
 
 # Data cookery: https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf
 dataPath <- path.expand(paste0(aqParams$SCCdataPath, "/aurn/"))
-#"2016", "2017", "2018", 
+#"2016", "2017", "2018", "2019" # use these to update further back
 years <- c("2020")
 sites <- c("SA33", "SOUT")
 
