@@ -229,16 +229,15 @@ plan # test the plan
 make(plan) # run the plan, re-loading data if needed
 
 # get the data back
-sotonAirDT <- drake::readd(allData)
 fixedDT <- drake::readd(fixedData)
 
 # test
-sotonAirDT[, year := lubridate::year(dateTimeUTC)]
-with(sotonAirDT, table(year, source))
+fixedDT[, year := lubridate::year(dateTimeUTC)]
+with(fixedDT, table(year, source))
 
-with(sotonAirDT, table(pollutant, source))
+with(fixedDT, table(pollutant, source))
 
-sotonAirDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
+fixedDT[, obsDate := lubridate::date(dateTimeUTC)] # put it back
 
 
 # > Rmd settings ----
@@ -265,12 +264,12 @@ myParams$subtitle <- "Exploring the effect of UK covid 19 lockdown on air qualit
 #origDataDT <- origDataDT[dateTimeUTC > lubridate::as_datetime("2020-01-01")]
 
 # test what we have
-sotonAirDT[!is.na(value), .(minDate = min(dateTimeUTC),
+fixedDT[!is.na(value), .(minDate = min(dateTimeUTC),
                             maxDate = max(dateTimeUTC)
                             ), 
            keyby = .(site, source)]
 
-with(sotonAirDT, table(site, year, useNA = "always"))
+with(fixedDT, table(site, year, useNA = "always"))
 
 # > run report ----
 #
