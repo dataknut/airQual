@@ -17,8 +17,8 @@ format) as the y. It colours the tile using the `dt$value` variable.
 }
 \seealso{
 Other plots: 
-\code{\link{addLockdownDateTime}()},
-\code{\link{addLockdownDate}()},
+\code{\link{addLockdownRectDateTime}()},
+\code{\link{addLockdownRectDate}()},
 \code{\link{addWeekendsDateTime}()},
 \code{\link{addWeekendsDate}()},
 \code{\link{compareYearsDiffPlotDaily}()},

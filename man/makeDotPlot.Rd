@@ -26,8 +26,8 @@ colour byVar.
 }
 \seealso{
 Other plots: 
-\code{\link{addLockdownDateTime}()},
-\code{\link{addLockdownDate}()},
+\code{\link{addLockdownRectDateTime}()},
+\code{\link{addLockdownRectDate}()},
 \code{\link{addWeekendsDateTime}()},
 \code{\link{addWeekendsDate}()},
 \code{\link{compareYearsDiffPlotDaily}()},

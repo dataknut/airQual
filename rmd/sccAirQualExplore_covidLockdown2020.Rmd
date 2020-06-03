@@ -32,7 +32,7 @@ bibliography: '`r path.expand("~/bibliography.bib")`'
 ```{r knitrSetUp, include=FALSE}
 
 # Set knitr options
-knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what is happening
+knitr::opts_chunk$set(echo = TRUE,          # echo code so reader can see what is happening; hide using yaml
                       warning = FALSE,
                       message = FALSE,
                       fig_caption = TRUE,
@@ -47,16 +47,14 @@ knitr::opts_chunk$set(echo = FALSE,          # echo code so reader can see what 
 ```{r codeSetup, include=FALSE}
 
 # Load Packages ----
-rmdLibs <- c("ggplot2",
+rmdLibs <- c("airQual",
+             "ggplot2",
             "kableExtra",
             "openair", # for fancy air qual stuff
             "skimr",
             "viridis")
-
+library(dkUtils)
 dkUtils::loadLibraries(rmdLibs)
-
-# Adjust knitr options if required
-knitr::opts_chunk$set(echo = TRUE)
 
 # Log compile time:
 myParams$startTime <- proc.time()
@@ -120,60 +118,32 @@ return(plotDT)
 
 makeWeeklyComparisonDT <- function(dt){
   baseDT <- dt[compareYear == "2017-2019", 
-                .(baseMean = mean(value),
-                  baseMedian = median(value)
-                  ), 
-                keyby = list(weekNo, compareYear)
-                ]
-
-testDT <- dt[compareYear == "2020", 
-                .(testMean = mean(value),
-                  testMedian = median(value)
-                  ), 
-                keyby = list(weekNo, compareYear, site)
-                ]
-
-setkey(baseDT, weekNo)
-setkey(baseDT, weekNo)
-
-plotDT <- baseDT[testDT] # auto drops non matches to 2020
-plotDT[, pcDiffMean := 100*(testMean - baseMean)/baseMean] # -ve value indicates lower
+               .(baseMean = mean(value),
+                 baseMedian = median(value)
+               ), 
+               keyby = list(weekNo, compareYear)
+               ]
+  
+  testDT <- dt[compareYear == "2020", 
+               .(testMean = mean(value),
+                 testMedian = median(value)
+               ), 
+               keyby = list(weekNo, compareYear, site)
+               ]
+  
+  setkey(baseDT, weekNo)
+  setkey(baseDT, weekNo)
+  
+  plotDT <- baseDT[testDT] # auto drops non matches to 2020
+  plotDT[, pcDiffMean := 100*(testMean - baseMean)/baseMean] # -ve value indicates lower
   plotDT[, pcDiffMedian:= 100*(testMedian - baseMedian)/baseMedian] # -ve value indicates lower
   plotDT[, pos := ifelse(pcDiffMean > 0 , "Pos", "Neg")] # want to colour the line sections - how?
   # final plot - adds annotations
-return(plotDT)
+  return(plotDT)
 }
 
-# I have no idea why these only work if they are here
-addLockdownRectDate <- function(p, yMin, yMax){
-  # assumes p has x = obsDate
-  # p <- p + annotate("text", x = myParams$lockDownStartDate, 
-  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-  #            label = "UK covid lockdown to date", hjust = 0.5)
-  p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
-                    xmax = myParams$lockDownEndDate, 
-                    ymin = yMin-1, ymax = yMax+1, 
-                    alpha = myParams$myAlpha, 
-                    fill = myParams$vLineCol, 
-                    colour = myParams$vLineCol)
-  return(p)
-}
 
-addLockdownRectDateTime <- function(p, yMin, yMax){
-  # assumes p has x = obsDateTime
-  # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
-  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
-  #            label = "UK covid lockdown to date", hjust = 0.5)
-  p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
-                    xmax = myParams$lockDownEndDateTime, 
-                    ymin = yMin-1, ymax = yMax+1, 
-                    alpha = myParams$myAlpha, 
-                    fill = myParams$vLineCol, 
-                    colour = myParams$vLineCol) 
-  
-  return(p)
-}
-
+# why do these only work here?
 addWeekendsDate <- function(p, yMin, yMax){
   p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
                     xmax = as.Date("2020-03-09"),
@@ -298,7 +268,45 @@ addWeekendsDateTime <- function(p, yMin, yMax){
   return(p)
 }
 
+addLockdownRectDateTime <- function(p, yMin, yMax){
+  # assumes p has x = obsDateTime
+  # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
+                    xmax = myParams$lockDownEndDateTime, 
+                    ymin = yMin-1, ymax = yMax+1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol) 
+  
+  return(p)
+}
 
+addLockdownRectDate <- function(p, yMin, yMax){
+  # assumes p has x = obsDate
+  # p <- p + annotate("text", x = myParams$lockDownStartDate, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
+                    xmax = myParams$lockDownEndDate, 
+                    ymin = yMin-1, ymax = yMax+1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol)
+  return(p)
+}
+
+addLockdownRectWeek <- function(p, yMin, yMax){
+  p <- p + annotate("rect", 
+                    xmin = (lubridate::week(myParams$lockDownStartDate) - 0.1),
+                    xmax = (lubridate::week(myParams$lockDownEndDate) + 0.1), 
+                    ymin = yMin - 1, ymax = yMax + 1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol)
+  return(p)
+}
 
 # only makes sense to use these for x axis covering March onwards
 myParams$weAlpha <- 0.3
@@ -309,37 +317,10 @@ myParams$labelPos <- 0.9
 
 ```
 
-# About
 
-## Code
-
-Source:
-
- * https://github.com/CfSOtago/airQual
-
-History:
-
- * https://github.com/CfSOtago/airQual/commits/master
-
-## Comments and feedback
-
-If you wish to comment please open an issue:
- 
- * https://github.com/CfSOtago/airQual/issues
-
-## Citation
-
-If you wish to refer to any of the material from this report please cite as:
-
- * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
-
-Report circulation:
-
- * Public
- 
-This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://cfsotago.github.io/airQual/) data analyses.
- 
 # Introduction
+
+This report describes exploratory analysis of changes in air quality in the City of Southampton, UK in Spring 2020.
 
 ```{r prepData}
 lastHA <- max(fixedDT[source == "hantsAir"]$dateTimeUTC)
@@ -397,7 +378,7 @@ It should be noted that air pollution levels in any given period of time are hig
 Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound affects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis of the affect of lockdown on air quality in Southampton.
 
 
-For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
+For much more detailed analysis see a longer and very messy [data report](https://dataknut.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
 
 # WHO air quality thresholds
 
@@ -437,7 +418,7 @@ p <- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) +
 yMin <- min(recentDT$value)
 yMax <- max(recentDT$value)
 
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 addWeekendsDateTime(p,yMin, yMax) +
   guides(colour=guide_legend(ncol=2))
 
@@ -450,7 +431,7 @@ recentDT[, time := hms::as_hms(dateTimeUTC)]
 yMin <- min(recentDT$time)
 yMax <- max(recentDT$time)
 p <- profileTilePlot(recentDT, yLab)
-p <- addLockdownDate(p, yMin, yMax)
+p <- addLockdownRectDate(p, yMin, yMax)
 addWeekendsDate(p, yMin, yMax) + 
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
 ```
@@ -473,7 +454,7 @@ p <- compareYearsPlot(plotDT, xVar = "fixedDate",
                       yVar = "meanVal",
                       colVar = "compareYear")
   
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   labs(x = "Date",
          y = "Daily mean",
        caption = paste0(myParams$lockdownCap, myParams$weekendCap, myParams$noThresh))
@@ -490,10 +471,20 @@ Figure \@ref(fig:no2pcDiffcompareDay) and \@ref(fig:no2pcDiffcompareWeek) show t
 
 ```{r no2pcDiffcompareDay, fig.cap="Percentage difference in daily mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
 
-dailyDT <- makeDailyComparisonDT(no2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(no2dt[site %like% "via AURN" & 
+                                         fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(dailyDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
+
 ```
 
 ```{r no2pcDiffcompareWeek, fig.cap="Percentage difference in weekly mean Nitrogen Dioxide levels 2020 vs 2017-2019, Southampton"}
@@ -501,9 +492,16 @@ compareYearsDiffPlotDaily(dailyDT) +
 weeklyDT <- makeWeeklyComparisonDT(no2dt[site %like% "via AURN" & 
                                          fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(weeklyDT, ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT, ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+
+addLockdownRectWeek(p, yMin, yMax)
 ```
 
 > Beware seasonal trends and meteorological affects
@@ -536,7 +534,7 @@ p <- p +
 yMin <- min(recentDT$value)
 yMax <- max(recentDT$value)
 
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 
 addWeekendsDateTime(p, yMin, yMax)
 ```
@@ -571,7 +569,7 @@ yMax <- max(plotDT$meanVal)
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", 
                       yVar = "meanVal",
                       colVar = "compareYear")
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   labs(x = "Date", y = "Daily mean", 
        caption = paste0(myParams$lockdownCap, myParams$weekendCap,myParams$noThresh))
 p <- addWeekendsDate(p, yMin, yMax)
@@ -584,19 +582,33 @@ Figure \@ref(fig:noxpcDiffcompareDay) and \@ref(fig:noxpcDiffcompareWeek) show t
 
 ```{r noxpcDiffcompareDay, fig.cap="% difference in daily mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeDailyComparisonDT(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(plotDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
 
 ```
 
 ```{r noxpcDiffcompareWeek, fig.cap="% difference in weekly mean Oxides of Nitrogen levels 2020 vs 2017-2019, Southampton"}
-plotDT <- makeWeeklyComparisonDT(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+weeklyDT <- makeWeeklyComparisonDT(noxdt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(plotDT, ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT, ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+addLockdownRectWeek(p, yMin, yMax)
 ```
 
 # Sulphour Dioxide
@@ -625,7 +637,7 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 addWeekendsDateTime(p, yMin, yMax)
 ```
 
@@ -660,7 +672,7 @@ yMax <- max(plotDT$mean)
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", 
                       yVar = "meanVal",
                       colVar = "compareYear")
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailySo2Threshold_WHO) +
   labs(x = "Date", y = "Daily mean", 
        caption = paste0(myParams$lockdownCap, myParams$weekendCap,
@@ -677,18 +689,35 @@ Figure \@ref(fig:so2pcDiffcompareDay) and \@ref(fig:so2pcDiffcompareWeek) show t
 
 ```{r so2pcDiffcompareDay, fig.cap="% difference in daily mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeDailyComparisonDT(so2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(so2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(plotDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
+
 ```
 
 ```{r so2pcDiffcompareWeek, fig.cap="% difference in weekly mean Sulphour Dioxide levels 2020 vs 2017-2019, Southampton"}
-plotDT <- makeWeeklyComparisonDT(so2dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+weeklyDT <- makeWeeklyComparisonDT(so2dt[site %like% "via AURN" & 
+                                           fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(plotDT,ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT,
+                                ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+addLockdownRectWeek(p, yMin, yMax)
 ```
 
 > Beware seasonal trends and meteorological affects
@@ -719,7 +748,7 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 addWeekendsDateTime(p, yMin, yMax)
 ```
 
@@ -754,7 +783,7 @@ yMax <- max(plotDT$mean)
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", 
                       yVar = "meanVal",
                       colVar = "compareYear")
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyO3Threshold_WHO) +
   labs(x = "Date", y = "Daily mean", 
        caption = paste0(myParams$lockdownCap, myParams$weekendCap,
@@ -772,20 +801,35 @@ Figure \@ref(fig:o3pcDiffcompareDay) and \@ref(fig:o3pcDiffcompareWeek) show the
 
 ```{r o3pcDiffcompareDay, fig.cap="% difference in daily mean Ozone levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeDailyComparisonDT(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(plotDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
 
 ```
 
 ```{r o3pcDiffcompareWeek, fig.cap="% difference in weekly mean Ozone levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeWeeklyComparisonDT(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+weeklyDT <- makeWeeklyComparisonDT(o3dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(plotDT,ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT,ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+addLockdownRectWeek(p, yMin, yMax)
+
 ```
 
 > Beware seasonal trends and meteorological affects
@@ -816,7 +860,7 @@ scale_x_datetime(date_breaks = "2 day", date_labels =  "%a %d %b")  +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 addWeekendsDateTime(p, yMin, yMax)
 ```
 
@@ -851,7 +895,7 @@ yMax <- max(plotDT$mean)
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", 
                       yVar = "meanVal",
                       colVar = "compareYear")
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyPm10Threshold_WHO) +
   labs(x = "Date", y = "Daily mean", 
        caption = paste0(myParams$lockdownCap, myParams$weekendCap,
@@ -867,19 +911,34 @@ Figure \@ref(fig:pm10pcDiffcompareDay) and \@ref(fig:pm10pcDiffcompareWeek) show
 
 ```{r pm10pcDiffcompareDay, fig.cap="% difference in daily mean PM10 levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeDailyComparisonDT(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(plotDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
+
 ```
 
 ```{r pm10pcDiffcompareWeek, fig.cap="% difference in weekly mean PM10 levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeWeeklyComparisonDT(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+weeklyDT <- makeWeeklyComparisonDT(pm10dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(plotDT,ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT,ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+addLockdownRectWeek(p, yMin, yMax)
 ```
 
 > Beware seasonal trends and meteorological affects
@@ -910,7 +969,7 @@ p <- p +
 
 yMax <- max(recentDT$value)
 yMin <- min(recentDT$value)
-p <- addLockdownDateTime(p, yMin, yMax)
+p <- addLockdownRectDateTime(p, yMin, yMax)
 addWeekendsDateTime(p, yMin, yMax)
 ```
 
@@ -944,7 +1003,7 @@ yMax <- max(plotDT$mean)
 p <- compareYearsPlot(plotDT, xVar = "fixedDate", 
                       yVar = "meanVal",
                       colVar = "compareYear")
-p <- addLockdownDate(p, yMin, yMax) +
+p <- addLockdownRectDate(p, yMin, yMax) +
   geom_hline(yintercept = myParams$dailyPm2.5Threshold_WHO) +
   labs(x = "Date", y = "Daily mean", 
        caption = paste0(myParams$lockdownCap, myParams$weekendCap,
@@ -960,20 +1019,35 @@ Figure \@ref(fig:pm25pcDiffcompareDay) and \@ref(fig:pm25pcDiffcompareWeek) show
 
 ```{r pm25pcDiffcompareDay, fig.cap="% difference in daily mean PM2.5 levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeDailyComparisonDT(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+dailyDT <- makeDailyComparisonDT(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotDaily(plotDT) +
+p <- compareYearsDiffPlotDaily(dailyDT) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(dailyDT$pcDiffMean)
+yMax <- max(dailyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+  
+p <- addLockdownRectDate(p, yMin, yMax)
+addWeekendsDate(p, yMin, yMax)
 
 ```
 
 ```{r pm25pcDiffcompareWeek, fig.cap="% difference in weekly mean PM2.5 levels 2020 vs 2017-2019, Southampton"}
 
-plotDT <- makeWeeklyComparisonDT(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
+weeklyDT <- makeWeeklyComparisonDT(pm25dt[site %like% "via AURN" & fixedDate >= myParams$comparePlotCut])
 
-compareYearsDiffPlotWeekly(plotDT,ldStart = myParams$lockDownStartDate,
+p <- compareYearsDiffPlotWeekly(weeklyDT,
+                                ldStart = myParams$lockDownStartDate,
                            ldEnd = myParams$lockDownEndDate) +
   labs(caption = paste0(myParams$lockdownCap))
+
+yMin <- min(weeklyDT$pcDiffMean)
+yMax <- max(weeklyDT$pcDiffMean)
+print(paste0("Max drop %:", round(yMin)))
+print(paste0("Max increase %:", round(yMax)))
+addLockdownRectWeek(p, yMin, yMax)
 ```
 
 > Beware seasonal trends and meteorological affects
@@ -1003,7 +1077,7 @@ p <- ggplot2::ggplot(windDT[obsDate > as.Date("2020-03-23")], aes(x = dateTimeUT
 yMin <- min(windDT[obsDate > as.Date("2020-03-23")]$ws)
 yMax <- max(windDT[obsDate > as.Date("2020-03-23")]$ws)
 p <- addWeekendsDateTime(p, yMin, yMax)
-#p <- addLockdownDateTime(p, yMin, yMax)
+#p <- addLockdownRectDateTime(p, yMin, yMax)
 p <- p + labs(y = "Wind speed", 
          x = "Time", 
          caption = paste0(myParams$weekendCap)) + 
@@ -1098,14 +1172,47 @@ NB:
 
 We have also produced [wind/pollution roses](sccAirQualExplore_windroses_Wind and pollution roses 2016-2020 (AURN data).html) for these sites.
 
+# About
+
+## Code
+
+Source:
+
+ * https://github.com/dataknut/airQual
+
+History:
+
+ * https://github.com/dataknut/airQual/commits/master
+
+## Comments and feedback
+
+If you wish to comment please open an issue:
+ 
+ * https://github.com/dataknut/airQual/issues
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://dataknut.github.io/airQual/) data analyses.
+
 # Annex
 
 ## Missing data {#annexMissing}
 
 Several of these datasets suffer from missing data or have stopped updating. This is visualised below for all data for all sites from January 2020.
 
+For example \@ref(fig:testNegNo2) shows missing data patterns for Nitrogen Dioxide.
+
 ```{r testNegNo2, fig.cap="Nitrogen Dioxide data availability and levels over time"}
 # dt,xvar, yvar,fillVar, yLab
+yLab <- "NO2"
 tileDT <- fixedDT[pollutant == "no2" & 
                        dateTimeUTC > as.Date("2020-02-01") &
                        !is.na(value)]
@@ -1119,7 +1226,7 @@ p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
 ```
 
 ```{r testNegNox, fig.cap="Oxides of nitrogen data availability and levels over time"}
-
+yLab <- "NOx"
 # dt,xvar, yvar,fillVar, yLab
 tileDT <- fixedDT[pollutant == "nox" & 
                        dateTimeUTC > as.Date("2020-02-01") &
@@ -1134,7 +1241,7 @@ p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
 ```
 
 ```{r testNegSo2, fig.cap="Sulphour Dioxide data availability and levels over time"}
-
+yLab <- "SO2"
 # dt,xvar, yvar,fillVar, yLab
 tileDT <- fixedDT[pollutant == "so2" & 
                        dateTimeUTC > as.Date("2020-02-01") &
@@ -1149,7 +1256,7 @@ p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
 ```
 
 ```{r testNego3, fig.cap = "Availability and level of o3 data over time"}
-
+yLab <- "O3"
 tileDT <- fixedDT[pollutant == "o3" & 
                        dateTimeUTC > as.Date("2020-02-01") &
                        !is.na(value)]
@@ -1163,6 +1270,7 @@ p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
 ```
 
 ```{r testNegPM10, fig.cap = "Availability and level of PM 10 data over time"}
+yLab <- "PM10"
 tileDT <- fixedDT[pollutant == "pm10" & 
                        dateTimeUTC > as.Date("2020-02-01") &
                        !is.na(value)]
@@ -1176,7 +1284,7 @@ p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
 ```
 
 ```{r testNegPM25, fig.cap = "Availability and level of PM 2.5 data over time"}
-
+yLab <- "PM2.5"
 tileDT <- fixedDT[pollutant == "pm2.5" & 
                        dateTimeUTC > as.Date("2020-02-01") &
                        !is.na(value)]
@@ -1188,6 +1296,272 @@ p <- makeTilePlot(tileDT, xVar = "dateTimeUTC", xLab = "Date & Time",
 p + scale_x_datetime(date_breaks = "7 day", date_labels =  "%a %d %b")  +
     theme(axis.text.x=element_text(angle=90, hjust=1)) 
 ```
+
+## Ship activity
+
+Exploration of correlations between wind direction, recorded ship activity and pollutants.
+
+Data:
+
+ * Air quality: AURN
+ * Ship counts: Western docks forum
+ * WHO reference thresholds: https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+It is important to consider the relative locations of the air quality stations and the port activities when interpreting this data. The map below shows the rough location of the stations (coloured circles: green 2 = A33, orange 4 = City Centre) as well as the locations of monitoring stations that, as of June 4th 2020, are not collecting data.
+
+![Latest air quality snaphot (June 4th 2020)](../figs/hantsAirLocs.png)
+
+```{r loadShipsData}
+shipsDailyDT <- data.table::fread(paste0(aqParams$SCCdataPath, "/shipNumbers/shipNumbersSouthampton.csv"))
+shipsDailyDT[, rDate := lubridate::dmy(Date)]
+shipsDailyDT <- shipsDailyDT[!is.na(rDate)]
+#summary(shipsDailyDT$rDate)
+
+shipsDailyDT[, allShips := cargo + max_cruise]
+shipsDailyDT[, allShipsCoded := ifelse(allShips == 0, "0" , NA)
+       ]
+shipsDailyDT[, allShipsCoded := ifelse(allShips == 1 | 
+                                    allShips == 2, "1-2" , allShipsCoded)
+       ]
+shipsDailyDT[, allShipsCoded := ifelse(allShips == 3 | 
+                                    allShips == 4, "3-4" , allShipsCoded)
+       ]
+shipsDailyDT[, allShipsCoded := ifelse(allShips == 5 |
+                                         allShips == 6, "5-6" , allShipsCoded)
+       ]
+shipsDailyDT[, allShipsCoded := ifelse(allShips > 6, "7+" , allShipsCoded)
+       ]
+
+# re-code all ships to something more intuitive than openair does
+shipsDailyDT[, maxCruiseCoded := ifelse(max_cruise == 0, "0" , NA)
+       ]
+shipsDailyDT[, maxCruiseCoded := ifelse(max_cruise == 1 | 
+                                    max_cruise == 2, "1-2" , maxCruiseCoded)
+       ]
+shipsDailyDT[, maxCruiseCoded := ifelse(max_cruise == 3 | 
+                                    max_cruise == 4, "3-4" , maxCruiseCoded)
+       ]
+shipsDailyDT[, maxCruiseCoded := ifelse(max_cruise > 4, "5+" , maxCruiseCoded)
+       ]
+t <- with(shipsDailyDT, table(maxCruiseCoded,allShipsCoded))
+
+kableExtra::kable(addmargins(t), caption = "Number of days with max n cruise ships (rows) vs all ships") %>%
+  kable_styling()
+
+dailyNO2DT <- no2dt[obsDate >= as.Date("2020-04-01"), 
+                  .(meanNO2 = mean(value),
+                    maxNO2 = max(value),
+                    nObs = .N), keyby = .(site, rDate = obsDate)]
+dailyPM10DT <- pm10dt[obsDate >= as.Date("2020-04-01"), 
+                  .(meanPM10 = mean(value),
+                    maxPM10 = max(value),
+                    nObs = .N), keyby = .(site, rDate = obsDate)]
+#summary(dailyNO2DT$rDate)
+
+windDirDT <- fixedDT[pollutant == "wd", .(site, dateTimeUTC, wd = value)]
+windSpeedDT <- fixedDT[pollutant == "ws", .(site, dateTimeUTC, ws = value)]
+setkey(windDirDT, site, dateTimeUTC)
+setkey(windSpeedDT, site, dateTimeUTC)
+windDT <- windSpeedDT[windDirDT]
+dailyWindDT <- windDT[dateTimeUTC >= as.Date("2020-04-01"), 
+                         .(meanWd = mean(wd),
+                           meanWs = mean(ws),
+                           nObs = .N), keyby=.(site, rDate = as.Date(dateTimeUTC))]
+
+
+setkey(shipsDailyDT, rDate)
+setkey(dailyNO2DT, rDate)
+setkey(dailyPM10DT, rDate)
+
+plotNO2DT <- shipsDailyDT[dailyNO2DT]
+plotPM10DT <- shipsDailyDT[dailyPM10DT]
+
+setkey(dailyWindDT,site, rDate)
+setkey(plotNO2DT, site, rDate)
+plotNO2DT <- dailyWindDT[plotNO2DT[site %like% "AURN"]] # keep AURN only
+
+setkey(dailyWindDT,site, rDate)
+setkey(plotPM10DT, site, rDate)
+plotPM10DT <- dailyWindDT[plotPM10DT[site %like% "AURN"]] # keep AURN only
+#nrow(plotDT)
+```
+
+Table \@ref(tab:loadShipsData) shows the number of days for which there are different maximum numbers of cruise ships (rows) and total cargo and cruise ships (columns). There is only 1 day when there are 0 cruise ships and no days when there are 0 ships. The sparseness of the data (only `r uniqueN(shipsDailyDT$rDate)` days) and the relative lack of variation in ship numbers means that a relationship between ship numbers and pollution will be difficult to detect.
+
+> In addition, and most importantly, these analyses only show correlations. It it quite possible, for example, that higher pollution levels are due to prevailing environmental/meteorological conditions that happen to coincide with more ships.
+
+### NO2
+
+Figures \@ref(fig:meanNo2BoxPlotsCruise) and \@ref(fig:maxNo2BoxPlotsCruise) shows the distribution of mean and max daily NO2 by maximum cruise ship counts for the day. There are no clear relationships.
+
+```{r meanNo2BoxPlotsCruise, fig.cap="Box plots of daily mean NO2 by maximum cruise ship counts"}
+myCap <- "April & May 2020 \nSources: AURN hourly observations & Western docks forum"
+
+ggplot2::ggplot(plotNO2DT, aes(x = maxCruiseCoded, y = meanNO2, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of cruise ships",
+       y = "Mean daily NO2",
+       caption = myCap) +
+  facet_grid(. ~ site)
+```
+
+```{r maxNo2BoxPlotsCruise, fig.cap="Box plots of daily max NO2 by maximum cruise ship counts"}
+ggplot2::ggplot(plotNO2DT, aes(x = maxCruiseCoded, y = maxNO2, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of cruise ships",
+       y = "Max daily NO2",
+       caption = paste0(myCap, "\nReference line: WHO hourly threshold")) +
+  facet_grid(. ~ site) +
+  geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO)
+```
+
+Figures \@ref(fig:meanNo2BoxPlotsAll) and \@ref(fig:maxNo2BoxPlotsAll) repeats this for all ships. In this case there appears to be slightly more of a rising trend as the number of ships increases.
+
+```{r meanNo2BoxPlotsAll, fig.cap="Box plots of daily mean NO2 by cargo + cruise ship counts"}
+ggplot2::ggplot(plotNO2DT, aes(x = allShipsCoded, y = meanNO2, 
+                            group = allShipsCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Mean daily NO2 (hourly observations)",
+       caption = myCap) +
+  facet_grid(. ~ site)
+```
+
+```{r maxNo2BoxPlotsAll, fig.cap="Box plots of daily max NO2 by cargo + cruise ship counts"}
+ggplot2::ggplot(plotNO2DT, aes(x = allShipsCoded, y = maxNO2, 
+                            group = allShipsCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Max daily NO2 (hourly observations)",
+       caption = paste0(myCap, "\nReference line: WHO hourly threshold")) +
+  facet_grid(. ~ site) +
+  geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO)
+```
+
+Figures \@ref(fig:meanNO2pollutionRoseCruise) and \@ref(fig:maxNO2pollutionRoseCruise) show [pollution roses](https://davidcarslaw.github.io/openair/reference/windRose.html) for daily mean and daily max NO2 by the maximum number of cruise ships alongside per day. These show the most frequent wind directions (wind rose) overlain by the proportion of pollution concentrations in the calculated groups.
+
+It appears that when the wind is from the South East/East _and_ more cruise ships are alongside then higher levels of NO2 are more frequent. **But** this could also be due to wind-blown continental pollution when the wind is from this direction as was known to be the case [during April 2020](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/).
+
+```{r meanNO2pollutionRoseCruise, fig.cap="Pollution rose for mean NO2 for April & May 2020 by max number of cruise ships (AURN sites, single day with 0 cruise ships excluded)"}
+plotNO2DT[, wd := meanWd]
+plotNO2DT[, ws := meanWs]
+plotNO2DT[site %like% "A33", shortSite := "A33"]
+plotNO2DT[site %like% "Centre", shortSite := "Centre"]
+
+openair::pollutionRose(plotNO2DT[max_cruise !=0], 
+                       pollutant = "meanNO2", type = c("maxCruiseCoded","shortSite")
+                       )
+```
+
+```{r maxNO2pollutionRoseCruise, fig.cap="Pollution rose for max NO2 for April & May 2020 by max number of cruise ships (AURN sites, single day with 0 cruise ships excluded)"}
+openair::pollutionRose(plotNO2DT[max_cruise !=0], 
+                       pollutant = "maxNO2", type = c("maxCruiseCoded","shortSite")
+                       )
+```
+
+Figures \@ref(fig:meanNO2pollutionRoseAll) and \@ref(fig:maxNO2pollutionRoseAll) show pollution roses for daily mean and daily max NO2 by the number of all ships alongside per day. As we would expect, these plots appear to show a similar effect.
+
+```{r meanNO2pollutionRoseAll, fig.cap="Pollution rose for mean NO2 for April & May 2020 by number of cruise + cargo ships (AURN sites)"}
+openair::pollutionRose(plotNO2DT, 
+                       pollutant = "meanNO2", type = c("allShipsCoded","shortSite"))
+```
+
+```{r maxNO2pollutionRoseAll, fig.cap="Pollution rose for max NO2 for April & May 2020 by number of cruise + cargo ships (AURN sites)"}
+openair::pollutionRose(plotNO2DT, 
+                       pollutant = "maxNO2", type = c("allShipsCoded","shortSite"))
+```
+
+
+
+### PM10
+
+Figures \@ref(fig:meanPm10BoxPlots) and \@ref(fig:maxPm10BoxPlots) show the distribution of mean and max daily PM10 by maximum cruise ship counts for the day. There is no clear relationship.
+
+```{r meanPm10BoxPlots, fig.cap="Box plots of daily mean PM10 by maximum cruise ship counts"}
+
+ggplot2::ggplot(plotPM10DT, aes(x = maxCruiseCoded, y = meanPM10, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of cruise ships",
+       y = "Mean daily PM10",
+       caption = paste0(myCap, "\nReference line: WHO 24 hour mean threshold")) +
+  facet_grid(. ~ site) +
+  geom_hline(yintercept = myParams$dailyPm10Threshold_WHO)
+```
+
+```{r maxPm10BoxPlots, fig.cap="Box plots of daily max PM10 by maximum cruise ship counts"}
+ggplot2::ggplot(plotPM10DT, aes(x = maxCruiseCoded, y = maxPM10, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of cruise ships",
+       y = "Max daily PM10",
+       caption = myCap) +
+  facet_grid(. ~ site) 
+```
+
+Figures \@ref(fig:meanPm10BoxPlotsAll) and \@ref(fig:maxPm10BoxPlotsAll) repeat this for all ships. In this case there appears to be a stronger relationship.
+
+```{r meanPm10BoxPlotsAll, fig.cap="Box plots of daily mean PM10 by cargo + cruise ship counts"}
+myCap <- "April & May 2020 (Sources: AURN & Western docks forum)"
+
+ggplot2::ggplot(plotPM10DT, aes(x = allShipsCoded, y = meanPM10, 
+                            group = allShipsCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Mean daily PM10",
+       caption = paste0(myCap, "\nReference line: WHO 24 hour mean threshold")) +
+  facet_grid(. ~ site) +
+  geom_hline(yintercept = myParams$dailyPm10Threshold_WHO)
+```
+
+```{r maxPm10BoxPlotsAll, fig.cap="Box plots of daily max PM10 by cargo + cruise ship counts"}
+ggplot2::ggplot(plotPM10DT, aes(x = allShipsCoded, y = maxPM10, 
+                            group = allShipsCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Max daily PM10 ",
+       caption = myCap) +
+  facet_grid(. ~ site)
+```
+
+Figures \@ref(fig:meanPm10pollutionRoseCruise) and \@ref(fig:maxPm10pollutionRoseCruise) show pollution roses for daily mean and daily max PM10 by the maximum number of cruise ships alongside per day. 
+
+It appears that when the wind is from the South East/East _and_ more cruise ships are alongside then higher levels of PM10 are more frequent. But this is also the case when the wind is from the West in the 3-4 ships category.
+
+```{r meanPm10pollutionRoseCruise, fig.cap="Pollution roses for mean PM10 for April & May 2020 by max number of cruise ships (AURN sites, single day with 0 cruise ships excluded)"}
+plotPM10DT[, wd := meanWd]
+plotPM10DT[, ws := meanWs]
+plotPM10DT[site %like% "A33", shortSite := "A33"]
+plotPM10DT[site %like% "Centre", shortSite := "Centre"]
+
+openair::pollutionRose(plotPM10DT[max_cruise !=0], 
+                       pollutant = "meanPM10", type = c("maxCruiseCoded","shortSite")
+                       )
+```
+
+```{r maxPm10pollutionRoseCruise, fig.cap="Pollution roses for max PM10 for April & May 2020 by max number of cruise ships (AURN sites, single day with 0 cruise ships excluded)"}
+openair::pollutionRose(plotPM10DT[max_cruise !=0], 
+                       pollutant = "maxPM10", type = c("maxCruiseCoded","shortSite")
+                       )
+```
+
+Finally, Figures \@ref(fig:meanPm10pollutionRoseAll) and Figures \@ref(fig:maxPm10pollutionRoseAll) show a pollution rose for daily mean and daily max PM10 by the number of all ships alongside per day. These plots appear to show a similar effect. As before it is not possible to discount the potential confounding effects of overall environmental conditions which the South East and Easterly wind directions can produce.
+
+```{r meanPm10pollutionRoseAll, fig.cap="Pollution roses for mean PM10 for April & May 2020 by number of cruise + cargo ships (AURN sites)"}
+openair::pollutionRose(plotPM10DT, 
+                       pollutant = "meanPM10", type = c("allShipsCoded","shortSite"))
+```
+
+```{r maxPm10pollutionRoseAll, fig.cap="Pollution roses for max PM10 for April & May 2020 by number of cruise + cargo ships (AURN sites)"}
+openair::pollutionRose(plotPM10DT, 
+                       pollutant = "maxPM10", type = c("allShipsCoded","shortSite"))
+```
+
+### Summary
+
+> Overall while there appear to be correlations between larger numbers of ships and more frequent higher pollution levels under some wind conditions, the small number of observations and possible confounding meteorological effects mean they could just be spurious. We may need a better measure of ship emissions and we need to take out the meteorological effects.
 
 ## Experiments with openair
 

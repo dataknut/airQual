@@ -63,6 +63,10 @@ addWeekendsDate <- function(p, yMin, yMax){
     annotate("rect", xmin = as.Date("2020-05-23"),
              xmax = as.Date("2020-05-25"),
              ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-05-30"),
+             xmax = as.Date("2020-06-01"),
+             ymin = yMin, ymax = yMax,
              alpha = myParams$weAlpha, fill = myParams$weFill)
   return(p)
 }

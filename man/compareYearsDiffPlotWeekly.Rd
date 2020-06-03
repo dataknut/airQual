@@ -5,10 +5,14 @@
 \title{\code{compareYearsDiffPlotWeekly} makes a geom_step() plot from the dt passed in by
 aggregating dt to weeks.}
 \usage{
-compareYearsDiffPlotWeekly(dt)
+compareYearsDiffPlotWeekly(dt, ldStart, ldEnd)
 }
 \arguments{
 \item{dt}{the data to plot}
+
+\item{ldStart}{lockdown start date (for annotation)}
+
+\item{ldEnd}{lockdown end date (for annotation)}
 }
 \description{
 It assumes `compareYear` exists and has the values "2017-2019" and "2020". It compares the `value`
@@ -17,8 +21,8 @@ Should use scales::percent() but doesn't.
 }
 \seealso{
 Other plots: 
-\code{\link{addLockdownDateTime}()},
-\code{\link{addLockdownDate}()},
+\code{\link{addLockdownRectDateTime}()},
+\code{\link{addLockdownRectDate}()},
 \code{\link{addWeekendsDateTime}()},
 \code{\link{addWeekendsDate}()},
 \code{\link{compareYearsDiffPlotDaily}()},

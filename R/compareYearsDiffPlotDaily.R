@@ -14,12 +14,8 @@
 #'
 compareYearsDiffPlotDaily <- function(dt){
   # use means for consistency with comparison plots where we use WHO thresholds (means)
-  yMin <- min(dt$pcDiffMean)
-  print(paste0("Max drop %:", round(yMin)))
-  yMax <- max(dt$pcDiffMean)
-  print(paste0("Max increase %:", round(yMax)))
   p <- ggplot2::ggplot(dt, aes(x = fixedDate, y = pcDiffMean 
-                                   #color = pos, group=NA)
+                               #color = pos, group=NA)
   )
   ) +
     geom_step() +
@@ -29,24 +25,9 @@ compareYearsDiffPlotDaily <- function(dt){
          y = "% difference 2020 vs 2017-2019",
          caption = paste0(myParams$lockdownCap, myParams$weekendCap)) +  
     theme(legend.position="bottom") +
-    geom_hline(yintercept = 0, linetype = 3)
-  
-  p <- addLockdownDate(p, yMin, yMax)
-  
-  p <- addWeekendsDate(p, yMin, yMax)
-  
-  p <- p + facet_grid(site ~ .) +
+    geom_hline(yintercept = 0, linetype = 3) + 
+    facet_grid(site ~ .) +
     theme(strip.text.y.right = element_text(angle = 90))
-  
-  # p <- p + geom_hline(yintercept = yMin, linetype = 3) # dotted
-  # p <- p + annotate("text", x = myParams$lockDownEndDate,
-  #                   y = yMin,
-  #                   label = yMin) # 
-  # 
-  # p <- p + geom_hline(yintercept = yMax, linetype = 3)
-  # p <- p + annotate("text", x = myParams$lockDownEndDate,
-  #                   y = yMax,
-  #                   label = yMax) # 
-  
+
   return(p)
 }
