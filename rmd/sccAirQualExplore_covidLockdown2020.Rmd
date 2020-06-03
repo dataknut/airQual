@@ -317,37 +317,10 @@ myParams$labelPos <- 0.9
 
 ```
 
-# About
 
-## Code
-
-Source:
-
- * https://github.com/CfSOtago/airQual
-
-History:
-
- * https://github.com/CfSOtago/airQual/commits/master
-
-## Comments and feedback
-
-If you wish to comment please open an issue:
- 
- * https://github.com/CfSOtago/airQual/issues
-
-## Citation
-
-If you wish to refer to any of the material from this report please cite as:
-
- * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
-
-Report circulation:
-
- * Public
- 
-This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://cfsotago.github.io/airQual/) data analyses.
- 
 # Introduction
+
+This report describes exploratory analysis of changes in air quality in the City of Southampton, UK in Spring 2020.
 
 ```{r prepData}
 lastHA <- max(fixedDT[source == "hantsAir"]$dateTimeUTC)
@@ -405,7 +378,7 @@ It should be noted that air pollution levels in any given period of time are hig
 Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound affects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis of the affect of lockdown on air quality in Southampton.
 
 
-For much more detailed analysis see a longer and very messy [data report](https://cfsotago.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
+For much more detailed analysis see a longer and very messy [data report](https://dataknut.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
 
 # WHO air quality thresholds
 
@@ -1198,6 +1171,36 @@ NB:
  * v* = volatiles
 
 We have also produced [wind/pollution roses](sccAirQualExplore_windroses_Wind and pollution roses 2016-2020 (AURN data).html) for these sites.
+
+# About
+
+## Code
+
+Source:
+
+ * https://github.com/dataknut/airQual
+
+History:
+
+ * https://github.com/dataknut/airQual/commits/master
+
+## Comments and feedback
+
+If you wish to comment please open an issue:
+ 
+ * https://github.com/dataknut/airQual/issues
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://dataknut.github.io/airQual/) data analyses.
 
 # Annex
 
