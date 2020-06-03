@@ -16,7 +16,7 @@ library(dkUtils)
 dkUtils::loadLibraries(localLibs)              # Load script specific packages
 
 # Project Settings ----
-update <- "yep" # editing this forces drake to re-load the data
+update <- "yes" # editing this forces drake to re-load the data
 myParams <- list()
 myParams$projLoc <- here::here()
 
