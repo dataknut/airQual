@@ -20,8 +20,8 @@ to plots where the x-axis is a dateTime.
 }
 \seealso{
 Other plots: 
-\code{\link{addLockdownDateTime}()},
-\code{\link{addLockdownDate}()},
+\code{\link{addLockdownRectDateTime}()},
+\code{\link{addLockdownRectDate}()},
 \code{\link{addWeekendsDate}()},
 \code{\link{compareYearsDiffPlotDaily}()},
 \code{\link{compareYearsDiffPlotWeekly}()},
