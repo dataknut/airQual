@@ -1374,7 +1374,10 @@ setkey(dailyNO2DT, rDate)
 setkey(dailyPM10DT, rDate)
 
 plotNO2DT <- shipsDailyDT[dailyNO2DT]
+plotNO2DT <- plotNO2DT[!is.na(cruise)] # filter out
+
 plotPM10DT <- shipsDailyDT[dailyPM10DT]
+plotPM10DT <- plotPM10DT[!is.na(cruise)] # filter out
 
 setkey(dailyWindDT,site, rDate)
 setkey(plotNO2DT, site, rDate)
@@ -1557,6 +1560,51 @@ openair::pollutionRose(plotPM10DT,
 ```{r maxPm10pollutionRoseAll, fig.cap="Pollution roses for max PM10 for April & May 2020 by number of cruise + cargo ships (AURN sites)"}
 openair::pollutionRose(plotPM10DT, 
                        pollutant = "maxPM10", type = c("allShipsCoded","shortSite"))
+```
+
+### Focus on South to East winds
+
+Given the above pollution rose analysis it is worth repeating the max NO2 and max PM10 box plots but splitting the data by wind quadrant. Note that this still does not remove the potential confounding effect of continental air...
+
+To do this we code the wind direction as:
+ 
+  * "Q1: N -> ENE" wind from 0 - 70 degrees
+  * "Q2: ENE -> S" 70 - 180
+  * "Q3-4: S -> N" 180 - 360
+
+Figure \@ref(fig:quadrantMeanNO2) shows mean NO2 split by wind quadrant and site while \@ref(fig:quadrantMeanPM10) shows mean PM10. Unfortunately the number of observations are so small that we really cannot see any pattern.
+
+```{r quadrantMeanNO2, fig.cap="Mean daily NO2 by wind quadrant and total ships"}
+setWindQuad <- function(dt){
+  # assumes wd = degrees
+  # openair default is 30 degrees
+  dt[, windDir := ifelse(wd >= 0 & wd < 70, "Q1: N -> ENE", NA)]
+  dt[, windDir := ifelse(wd >= 70 & wd < 180, "Q2: ENE -> S", windDir)]
+  dt[, windDir := ifelse(wd >= 180 & wd < 360, "Q3-4: S -> N", windDir)]
+  return(dt)
+}
+plotNO2DT <- setWindQuad(plotNO2DT)
+
+ggplot2::ggplot(plotNO2DT, aes(x = allShipsCoded, y = meanNO2, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Mean daily NO2",
+       caption = myCap) +
+  facet_grid(windDir ~ site)
+```
+
+```{r quadrantMeanPM10, fig.cap="Mean daily PM10 by wind quadrant and total ships"}
+
+plotPM10DT <- setWindQuad(plotPM10DT)
+
+ggplot2::ggplot(plotPM10DT, aes(x = allShipsCoded, y = meanPM10, 
+                            group = maxCruiseCoded, color = site)) +
+  geom_boxplot() +
+  labs(x = "Max number of ships",
+       y = "Mean daily PM10",
+       caption = myCap) +
+  facet_grid(windDir ~ site)
 ```
 
 ### Summary
