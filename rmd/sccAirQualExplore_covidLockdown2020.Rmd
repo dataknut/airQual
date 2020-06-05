@@ -1663,8 +1663,6 @@ The results are more or less what we would expect given the small number of obse
  * the more ships there are, the lower the NO2 at the A33 site but this is not statistically significant (95% confidence intervals include 0);
  * compared to the N -> ENE (contrast category omitted from the results), the ENE -> S wind quadrant is associated with nearly 8 times lower NO2 at the A33 site but this is not statistically significant;
  * if the wind is ENE -> S then every extra ship increased NO2 at the A33 site by 5 units but this is also not statistically significant 
- 
-However, the durbinWatsonTest test suggests autocorrelation as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow. Effects we think are statistically significant are probably not...
 
 ```{r linearModelNO2_A33}
 plotDT <- setWindQuad(plotDT)
@@ -1677,7 +1675,11 @@ stargazer::stargazer(lmA33, type = "text",
                      title = "Model results",
           ci = TRUE, 
           single.row = TRUE)
+```
 
+However the diagnostic durbinWatsonTest test suggests autocorrelation, as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow.
+
+```{r A33diagnostics}
 # The 'car' package has some nice graphs to help here
 car::qqPlot(lmA33) # shows default 95% CI
 car::spreadLevelPlot(lmA33)
@@ -1711,8 +1713,6 @@ In contrast, if we repeat this model for the city centre then we get more substa
  * if the wind is ENE -> S then every extra ship increased NO2 at the City Centre  site by 7 units and this is statistically significant although the 95% confidence intervals are quite wide (0.993-13.323)
  * if the wind is in the S -> N quadrant (i.e. the prevailing westerlies) then every extra ship increased NO2 at the City Centre  site by 6 units but this is not statistically significant at the 95% level
 
-Again, the durbinWatsonTest test suggests autocorrelation as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow. Effects we think are statistically significant are probably not...
-
 ```{r linearModelNO2_Centre}
 
 #openair::linearRelation(plotDT, x ="no2_Centre", y = "no2_A33")
@@ -1723,7 +1723,11 @@ stargazer::stargazer(lmCentre, type = "text",
                      title = "Model results",
           ci = TRUE, 
           single.row = TRUE)
+```
 
+Again however, the durbinWatsonTest test suggests autocorrelation. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow. As a result effects we think are statistically significant are probably not...
+
+```{r centreDiagnostics}
 # The 'car' package has some nice graphs to help here
 car::qqPlot(lmCentre) # shows default 95% CI
 car::spreadLevelPlot(lmCentre)
