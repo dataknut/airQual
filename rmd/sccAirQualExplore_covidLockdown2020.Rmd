@@ -1387,6 +1387,7 @@ setkey(dailyWindDT,site, rDate)
 setkey(plotPM10DT, site, rDate)
 plotPM10DT <- dailyWindDT[plotPM10DT[site %like% "AURN"]] # keep AURN only
 #nrow(plotDT)
+
 ```
 
 Table \@ref(tab:loadShipsData) shows the number of days for which there are different maximum numbers of cruise ships (rows) and total cargo and cruise ships (columns). There is only 1 day when there are 0 cruise ships and no days when there are 0 ships. The sparseness of the data (only `r uniqueN(shipsDailyDT$rDate)` days) and the relative lack of variation in ship numbers means that a relationship between ship numbers and pollution will be difficult to detect.
@@ -1607,9 +1608,156 @@ ggplot2::ggplot(plotPM10DT, aes(x = allShipsCoded, y = meanPM10,
   facet_grid(windDir ~ site)
 ```
 
+
+### Models
+
+It is not clear that linear modelling is an appropriate method to use since the observations are not independent - the value at time t is closely related to the value at time t + 1.
+
+```{r splitData}
+# Need to convert to wide so we can subtract centre (backround)
+table(fixedDT$site)
+
+fixedDT[, shortSite := ifelse(site %like% "A33", "A33", "Centre")]
+a33DT <- fixedDT[site %like% "A33" & year > 2019, .(dateTimeUTC, obsDate, shortSite, pollutant, value)]
+centreDT <- fixedDT[site %like% "Centre" & year > 2019, .(dateTimeUTC, obsDate, shortSite, pollutant, value)]
+
+a33DTw <- dcast(a33DT, dateTimeUTC + shortSite ~ pollutant + shortSite, 
+                value.var = "value")
+centreDTw <- dcast(centreDT, dateTimeUTC + shortSite ~ pollutant + shortSite, 
+                value.var = "value")
+
+a33DTw[,shortSite := NULL] # don't need
+setkey(a33DTw, dateTimeUTC)
+centreDTw[,shortSite := NULL]
+setkey(centreDTw, dateTimeUTC)
+
+wideFixedDT <- a33DTw[centreDTw]
+
+# differencing - treat Centre as 'background'
+
+wideFixedDT[, NO2_A33diff := no2_A33 - no2_Centre]
+wideFixedDT[, obsDate := as.Date(dateTimeUTC)]
+wideDailyDT <- wideFixedDT[, .(no2_A33 = mean(no2_A33),
+                               pm10_A33 = mean(pm10_A33),
+                               no2_Centre = mean(no2_Centre),
+                               pm10_Centre = mean(pm10_Centre),
+                               wd = mean(wd_A33), # these will be the same
+                               ws = mean(ws_A33)
+                               ), keyby = .(obsDate)
+                           ]
+wideDailyDT[,NO2_A33diff := no2_A33 - no2_Centre]
+plotDT <- wideDailyDT[shipsDailyDT]
+```
+
+In any case the table below shows the results of estimating a linear regression model of:
+
+ * NO2 (A33 site) = total ships * wind quadrant
+ 
+This should show:
+
+ * the overall effects of total ships and wind quadrants 
+ * what effect of the interaction between total ships and wind quadrant has
+ 
+The results are more or less what we would expect given the small number of observations:
+
+ * the more ships there are, the lower the NO2 at the A33 site but this is not statistically significant (95% confidence intervals include 0);
+ * compared to the N -> ENE (contrast category omitted from the results), the ENE -> S wind quadrant is associated with nearly 8 times lower NO2 at the A33 site but this is not statistically significant;
+ * if the wind is ENE -> S then every extra ship increased NO2 at the A33 site by 5 units but this is also not statistically significant 
+ 
+However, the durbinWatsonTest test suggests autocorrelation as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow. Effects we think are statistically significant are probably not...
+
+```{r linearModelNO2_A33}
+plotDT <- setWindQuad(plotDT)
+plotDT[, date := obsDate]
+#openair::linearRelation(plotDT, x ="no2_Centre", y = "no2_A33")
+
+lmA33 <- lm(no2_A33 ~ allShips*windDir, plotDT)
+
+stargazer::stargazer(lmA33, type = "text",
+                     title = "Model results",
+          ci = TRUE, 
+          single.row = TRUE)
+
+# The 'car' package has some nice graphs to help here
+car::qqPlot(lmA33) # shows default 95% CI
+car::spreadLevelPlot(lmA33)
+message("# Do we think the variance of the residuals is constant?")
+message("# Did the plot suggest a transformation? If so, why?")
+message("# autocorrelation/independence of errors")
+car::durbinWatsonTest(lmA33)
+# if p < 0.05 then a problem as implies autocorrelation
+# what should we conclude? Why? Could you have spotted that in the model summary?
+message("# homoskedasticity")
+plot(plotDT[!is.na(no2_A33)]$no2_A33,lmA33$residuals)
+abline(h = mean(lmA33$residuals), col = "red") # add the mean of the residuals (yay, it's zero!)
+message("# homoskedasticity: formal test")
+car::ncvTest(lmA33)
+# if p > 0.05 then there is heteroskedasticity
+# what do we conclude from the tests?
+
+message("# -> collinearity")
+car::vif(lmA33)
+# if any values > 10 -> problem
+message("# -> tolerance")
+1/car::vif(lmA33)
+# if any values < 0.2 -> possible problem
+# if any values < 0.1 -> definitely a problem
+```
+
+In contrast, if we repeat this model for the city centre then we get more substantive results. In this case:
+
+ * the more ships there are, the lower the NO2 at the City Centre site but this is not statistically significant (95% confidence intervals include 0);
+ * compared to the N -> ENE (contrast category omitted from the results), the ENE -> S wind quadrant is associated with nearly 32 times lower NO2 at the City Centre site but this is not statistically significant;
+ * if the wind is ENE -> S then every extra ship increased NO2 at the City Centre  site by 7 units and this is statistically significant although the 95% confidence intervals are quite wide (0.993-13.323)
+ * if the wind is in the S -> N quadrant (i.e. the prevailing westerlies) then every extra ship increased NO2 at the City Centre  site by 6 units but this is not statistically significant at the 95% level
+
+Again, the durbinWatsonTest test suggests autocorrelation as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow. Effects we think are statistically significant are probably not...
+
+```{r linearModelNO2_Centre}
+
+#openair::linearRelation(plotDT, x ="no2_Centre", y = "no2_A33")
+
+lmCentre <- lm(no2_Centre ~ allShips*windDir, plotDT)
+
+stargazer::stargazer(lmCentre, type = "text",
+                     title = "Model results",
+          ci = TRUE, 
+          single.row = TRUE)
+
+# The 'car' package has some nice graphs to help here
+car::qqPlot(lmCentre) # shows default 95% CI
+car::spreadLevelPlot(lmCentre)
+message("# Do we think the variance of the residuals is constant?")
+message("# Did the plot suggest a transformation? If so, why?")
+message("# autocorrelation/independence of errors")
+car::durbinWatsonTest(lmCentre)
+# if p < 0.05 then a problem as implies autocorrelation
+# what should we conclude? Why? Could you have spotted that in the model summary?
+message("# homoskedasticity")
+plot(plotDT[!is.na(no2_Centre)]$no2_Centre,lmCentre$residuals)
+abline(h = mean(lmCentre$residuals), col = "red") # add the mean of the residuals (yay, it's zero!)
+message("# homoskedasticity: formal test")
+car::ncvTest(lmCentre)
+# if p > 0.05 then there is heteroskedasticity
+# what do we conclude from the tests?
+
+message("# -> collinearity")
+car::vif(lmCentre)
+# if any values > 10 -> problem
+message("# -> tolerance")
+1/car::vif(lmCentre)
+# if any values < 0.2 -> possible problem
+# if any values < 0.1 -> definitely a problem
+```
+
+
 ### Summary
 
-> Overall while there appear to be correlations between larger numbers of ships and more frequent higher pollution levels under some wind conditions, the small number of observations and possible confounding meteorological effects mean they could just be spurious. We may need a better measure of ship emissions and we need to take out the meteorological effects.
+Overall while there appear to be correlations between larger numbers of ships and more frequent higher pollution levels under some wind conditions, the small number of observations and possible confounding meteorological effects mean they could just be spurious. 
+
+The linear regression model results are indicative of a relationship but suffer from methodological problems (autocorrelation).
+
+We may need a better measure of ship emissions, we need to take out the meteorological effects and we need an approach to time-series regression which can allow for autocorrelaton.
 
 ## Experiments with openair
 
@@ -1752,7 +1900,6 @@ openair::timeVariation(pm25dt[site %like% "Centre" & year >= cutYear],
                        group = "lockdown")
 
 ```
-
 
 
 # Runtime
