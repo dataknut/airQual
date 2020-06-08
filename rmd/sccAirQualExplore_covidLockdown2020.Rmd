@@ -1688,14 +1688,17 @@ message("# Did the plot suggest a transformation?")
 ```
 
 ```{r A33autocorrelation, echo = TRUE}
+
 message("# autocorrelation/independence of errors")
 car::durbinWatsonTest(lmA33)
 message("# if p < 0.05 then a problem as implies autocorrelation ut beware small samples")
 ```
 
+
 However the diagnostic durbinWatsonTest test suggests autocorrelation, as we would expect. This means the standard errors are likely to be underestimates and so the confidence intervals are too narrow.
 
 ```{r A33homoskedasticity, echo = TRUE}
+
 message("# homoskedasticity: plot (should be no obvious pattern")
 plot(plotDT[!is.na(no2_A33)]$no2_A33,lmA33$residuals)
 abline(h = mean(lmA33$residuals), col = "red") # add the mean of the residuals (yay, it's zero!)
@@ -1703,6 +1706,7 @@ message("# homoskedasticity: formal test")
 car::ncvTest(lmA33)
 message("# if p > 0.05 then there is heteroskedasticity")
 ```
+
 
 
 ```{r A33collinearity, echo = TRUE}
@@ -1742,6 +1746,7 @@ car::spreadLevelPlot(lmCentre)
 message("# Do we think the variance of the residuals is constant?")
 ```
 
+
 ```{r centreAutocorrelation, echo = TRUE}
 message("# autocorrelation/independence of errors")
 car::durbinWatsonTest(lmCentre)
@@ -1758,6 +1763,7 @@ message("# homoskedasticity: formal test")
 car::ncvTest(lmCentre)
 message("# if p > 0.05 then there is heteroskedasticity")
 ```
+
 
 ```{r centreCollinearity, echo = TRUE}
 message("# -> collinearity")
