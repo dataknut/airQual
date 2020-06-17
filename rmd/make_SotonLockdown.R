@@ -16,7 +16,7 @@ library(dkUtils)
 dkUtils::loadLibraries(localLibs)              # Load script specific packages
 
 # Project Settings ----
-update <- "please" # editing this forces drake to re-load the data
+update <- "yep" # editing this forces drake to re-load the data
 myParams <- list()
 myParams$projLoc <- here::here()
 
@@ -272,5 +272,4 @@ fixedDT[!is.na(value), .(minDate = min(dateTimeUTC),
 with(fixedDT, table(site, year, useNA = "always"))
 
 # > run report ----
-#
 doReport(myParams$rmd, myParams$version) # un/comment to (not) run automatically
