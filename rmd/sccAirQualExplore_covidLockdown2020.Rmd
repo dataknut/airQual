@@ -11,7 +11,7 @@ output:
   bookdown::html_document2:
     fig_caption: yes
     code_folding: hide
-    self_contained: true # set to false if you want plots seperately for easy import to word https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies
+    self_contained: FALSE # set to false if you want plots seperately for easy import to word https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies
     number_sections: yes
     toc: yes
     toc_depth: 2
@@ -338,6 +338,8 @@ Southampton City Council collects various forms of air quality data at the sites
 
 Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). The data that goes via AURN is [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process. AURN data is (c) Crown 2020 copyright Defra and available for re-use via https://uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
 
+# Data
+
 In this report we use data from the following sources:
 
  * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton last updated at `r lastHA`;
@@ -350,6 +352,16 @@ t <- fixedDT[!is.na(value),.(nObs = .N, firstData = min(dateTimeUTC), latestData
            nMeasures = uniqueN(pollutant)), keyby = .(site, source)]
 
 kableExtra::kable(t, caption = "Sites, data source and number of valid observations. note that measures includes wind speed and direction in the AURN sourced data",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+Table \@ref(tab:showPollutants) shows the poillutants recorded at each site.
+
+```{r showPollutants}
+t <- with(fixedDT[!is.na(value)], table(pollutant, site))
+
+kableExtra::kable(t, caption = "Sites, pollutant and number of valid observations",
                   digits = 2) %>%
   kable_styling()
 ```
@@ -392,6 +404,53 @@ A number of the following plots show the relevant WHO air quality thresholds and
 ```{r No2Summary}
 yLab <- "Nitrogen Dioxide (ug/m3)"
 no2dt <- fixedDT[pollutant == "no2"]
+```
+
+Figure \@ref(fig:theilSenNO2) shows the NO2 trend over time. Is lockdown below trend?
+
+```{r theilSenNO2, fig.cap="Theil-Sen trend (NO2)"}
+no2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaNO2 <- openair::TheilSen(no2dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "NO2", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+p <- oaNO2$plot
+
+getModelTrendTable <- function(oa, fname){
+  # oa is an openAir object created by theilSen
+  # calculates the % below trend using the theil sen slope line parameters
+  # oa <- oaGWh
+  oaData <- as.data.table(oa$data$main.data)
+  rDT <- oaData[, .(date, conc, a,b,slope)]
+  # https://github.com/davidcarslaw/openair/blob/master/R/TheilSen.R#L192
+  # and
+  # https://github.com/davidcarslaw/openair/blob/master/R/TheilSen.R#L625
+  rDT[, x := time_length(date - as.Date("1970-01-01"), unit="days")] # n days since x = 0
+  rDT[, expectedVal := a + (b * x)] # b = slope / 365
+  
+  # checks
+  p <- ggplot2::ggplot(rDT, aes(x = date)) + 
+    geom_line(aes(y = conc)) +
+    labs(y = "Value",
+         caption = fname)
+  p <- p + geom_line(aes(y = expectedVal), linetype = "dashed")
+  ggplot2::ggsave(here::here("docs", "plots", paste0("SSC_trendModelTestPlot_", fname, ".png")))
+  rDT[, diff := conc - expectedVal]
+  rDT[, pcDiff := (diff/expectedVal)*100]
+  
+  t <- rDT[,.(date, conc, a,b,slope,expectedVal, diff, pcDiff)]
+  return(t)
+}
+
+t <- getModelTrendTable(oaNO2, fname = "NO2")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")], 
+            date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
 ```
 
 Figure \@ref(fig:no2recent) shows the most recent hourly data.
@@ -514,6 +573,26 @@ yLab <- "Oxides of Nitrogen (ug/m3)"
 noxdt <- fixedDT[pollutant == "nox"]
 ```
 
+Figure \@ref(fig:theilSenNOx) shows the NOx trend over time. Is lockdown below trend?
+
+```{r theilSenNOx, fig.cap="Theil-Sen trend (NOx)"}
+noxdt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaNOx <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "NOx", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+p <- oaNOx$plot
+
+t <- getModelTrendTable(oaNOx, fname = "NOx")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")], date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
 Figure \@ref(fig:noxrecent) shows the most recent hourly data.
 
 ```{r noxrecent, fig.cap="Oxides of nitrogen levels, Southampton (hourly, recent)"}
@@ -617,6 +696,26 @@ addLockdownRectWeek(p, yMin, yMax)
 yLab <- "Sulphour Dioxide (ug/m3)"
 so2dt <- fixedDT[pollutant == "so2"]
 
+```
+
+Figure \@ref(fig:theilSenSO2) shows the SO2 trend over time. Is lockdown below trend?
+
+```{r theilSenSO2, fig.cap="Theil-Sen trend (SO2)"}
+so2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaSO2 <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "SO2", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaSO2, fname = "SO2")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
 ```
 
 Figure \@ref(fig:so2recent) shows the most recent hourly data.
@@ -728,6 +827,26 @@ addLockdownRectWeek(p, yMin, yMax)
 ```{r o3Summary}
 yLab <- "Ozone (ug/m3)"
 o3dt <- fixedDT[pollutant == "o3"]
+```
+
+Figure \@ref(fig:theilSenO3) shows the O3 trend over time. Is lockdown below trend?
+
+```{r theilSenO3, fig.cap="Theil-Sen trend (O3)"}
+o3dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaO3 <- openair::TheilSen(o3dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "O3", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaO3, fname = "O3")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
 ```
 
 Figure \@ref(fig:03recent) shows the most recent hourly data.
@@ -842,6 +961,27 @@ pm10dt <- fixedDT[pollutant == "pm10"]
 
 ```
 
+Figure \@ref(fig:theilSenPM10) shows the PM10 trend over time. Is lockdown below trend?
+
+```{r theilSenPM10, fig.cap="Theil-Sen trend (PM10)"}
+pm10dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaPM10 <- openair::TheilSen(pm10dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "PM10", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaPM10, fname = "SPM10")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+
 Figure \@ref(fig:pm10recent) shows the most recent hourly data.
 
 ```{r pm10recent, fig.cap="PM10 levels, Southampton (hourly, recent)"}
@@ -949,6 +1089,26 @@ addLockdownRectWeek(p, yMin, yMax)
 yLab <- "PM 2.5 (ug/m3)"
 pm25dt <- fixedDT[pollutant == "pm2.5"]
 
+```
+
+Figure \@ref(fig:theilSenPM25) shows the PM10 trend over time. Is lockdown below trend?
+
+```{r theilSenPM25, fig.cap="Theil-Sen trend (PM2.5)"}
+pm25dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaPM25 <- openair::TheilSen(pm25dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "PM2.5", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaPM25, fname = "PM2.5")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
 ```
 
 Figure \@ref(fig:pm25recent) shows the most recent hourly data.
