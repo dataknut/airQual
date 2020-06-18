@@ -269,7 +269,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Exploring the effect of UK covid 19 lockdown on air quality: Summary for BBC South</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-06-18 22:08:11 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-06-18 22:14:15 (Europe/London)</h4>
 
 </div>
 
@@ -1151,7 +1151,7 @@ so2dt &lt;- fixedDT[pollutant == &quot;so2&quot;]</code></pre>
 <p>Figure <a href="#fig:theilSenSO2">6.1</a> shows the SO2 trend over time. Is lockdown below trend?</p>
 <pre class="r"><code>so2dt[, `:=`(date, as.Date(dateTimeUTC))]  # set date to date for this one
 
-oaSO2 &lt;- openair::TheilSen(noxdt[date &lt; as.Date(&quot;2020-06-01&quot;)], &quot;value&quot;, ylab = &quot;SO2&quot;, deseason = TRUE, xlab = &quot;Year&quot;, 
+oaSO2 &lt;- openair::TheilSen(so2dt[date &lt; as.Date(&quot;2020-06-01&quot;)], &quot;value&quot;, ylab = &quot;SO2&quot;, deseason = TRUE, xlab = &quot;Year&quot;, 
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenSO2"></span>
@@ -1188,10 +1188,10 @@ pcDiff
 Jan 2020
 </td>
 <td style="text-align:right;">
--5.11
+-0.74
 </td>
 <td style="text-align:right;">
--9.30
+-41.70
 </td>
 </tr>
 <tr>
@@ -1199,10 +1199,10 @@ Jan 2020
 Feb 2020
 </td>
 <td style="text-align:right;">
--6.81
+-0.46
 </td>
 <td style="text-align:right;">
--12.55
+-25.66
 </td>
 </tr>
 <tr>
@@ -1210,10 +1210,10 @@ Feb 2020
 Mar 2020
 </td>
 <td style="text-align:right;">
--9.41
+-0.21
 </td>
 <td style="text-align:right;">
--17.54
+-11.60
 </td>
 </tr>
 <tr>
@@ -1221,10 +1221,10 @@ Mar 2020
 Apr 2020
 </td>
 <td style="text-align:right;">
--0.35
+1.90
 </td>
 <td style="text-align:right;">
--0.66
+105.20
 </td>
 </tr>
 <tr>
@@ -1232,10 +1232,10 @@ Apr 2020
 May 2020
 </td>
 <td style="text-align:right;">
--5.28
+1.21
 </td>
 <td style="text-align:right;">
--10.08
+66.56
 </td>
 </tr>
 </tbody>
@@ -1571,7 +1571,7 @@ May 2020
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 15.068 seconds ( 0.25 minutes).</p>
+<p>Analysis completed in 12.626 seconds ( 0.21 minutes).</p>
 <p>R packages used in this report:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>

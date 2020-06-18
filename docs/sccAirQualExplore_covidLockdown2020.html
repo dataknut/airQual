@@ -269,7 +269,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Exploring the effect of UK covid 19 lockdown on air quality</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-06-17 21:39:34 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-06-18 22:14:58 (Europe/London)</h4>
 
 </div>
 
@@ -944,8 +944,8 @@ Figure 4.1: Theil-Sen trend (NO2)
 <pre class="r"><code>p &lt;- oaNO2$plot
 
 getModelTrendTable &lt;- function(oa, fname) {
-    # oa is an openAir object created by theilSen calculates the % below trend using the theil sen slope line parameters
-    # oa &lt;- oaGWh
+    # oa is an openAir object created by theilSen calculates the % below trend using the theil sen slope line
+    # parameters oa &lt;- oaGWh
     oaData &lt;- as.data.table(oa$data$main.data)
     rDT &lt;- oaData[, .(date, conc, a, b, slope)]
     # https://github.com/davidcarslaw/openair/blob/master/R/TheilSen.R#L192 and
@@ -1051,8 +1051,8 @@ p &lt;- makeDotPlot(recentDT, xVar = &quot;dateTimeUTC&quot;, xLab = &quot;Date 
 p &lt;- p + scale_x_datetime(date_breaks = &quot;2 day&quot;, date_labels = &quot;%a %d %b&quot;) + theme(axis.text.x = element_text(angle = 90, 
     hjust = 1))
 
-p &lt;- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) + labs(caption = paste0(myParams$lockdownCap, myParams$weekendCap, 
-    &quot;\nReference line = WHO hourly threshold (&quot;, myParams$hourlyNo2Threshold_WHO, &quot;)&quot;))
+p &lt;- p + geom_hline(yintercept = myParams$hourlyNo2Threshold_WHO) + labs(caption = paste0(myParams$lockdownCap, 
+    myParams$weekendCap, &quot;\nReference line = WHO hourly threshold (&quot;, myParams$hourlyNo2Threshold_WHO, &quot;)&quot;))
 
 # final plot - adds annotations
 yMin &lt;- min(recentDT$value)
@@ -1080,8 +1080,9 @@ Figure 4.3: Nitrogen Dioxide levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:no2compare">4.4</a> shows the most recent mean daily values compared to previous years for the two AURN sites which do not have missing data. We have shifted the dates for the comparison years to ensure that weekdays and weekends line up. Note that this plot shows daily means with no indications of variance. Visible differences are therefore purely indicative at this stage.</p>
-<pre class="r"><code>plotDT &lt;- no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- no2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$meanVal)
@@ -1273,8 +1274,9 @@ Figure 5.3: Oxides of nitrogen levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:noxcompare">5.4</a> shows the most recent mean daily values compared to previous years for the two AURN sites.</p>
-<pre class="r"><code>plotDT &lt;- noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- noxdt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$meanVal)
@@ -1337,7 +1339,7 @@ so2dt &lt;- fixedDT[pollutant == &quot;so2&quot;]</code></pre>
 <p>Figure <a href="#fig:theilSenSO2">6.1</a> shows the SO2 trend over time. Is lockdown below trend?</p>
 <pre class="r"><code>so2dt[, `:=`(date, as.Date(dateTimeUTC))]  # set date to date for this one
 
-oaSO2 &lt;- openair::TheilSen(noxdt[date &lt; as.Date(&quot;2020-06-01&quot;)], &quot;value&quot;, ylab = &quot;SO2&quot;, deseason = TRUE, xlab = &quot;Year&quot;, 
+oaSO2 &lt;- openair::TheilSen(so2dt[date &lt; as.Date(&quot;2020-06-01&quot;)], &quot;value&quot;, ylab = &quot;SO2&quot;, deseason = TRUE, xlab = &quot;Year&quot;, 
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenSO2"></span>
@@ -1374,10 +1376,10 @@ pcDiff
 Jan 2020
 </td>
 <td style="text-align:right;">
--5.11
+-0.74
 </td>
 <td style="text-align:right;">
--9.30
+-41.70
 </td>
 </tr>
 <tr>
@@ -1385,10 +1387,10 @@ Jan 2020
 Feb 2020
 </td>
 <td style="text-align:right;">
--6.81
+-0.46
 </td>
 <td style="text-align:right;">
--12.55
+-25.66
 </td>
 </tr>
 <tr>
@@ -1396,10 +1398,10 @@ Feb 2020
 Mar 2020
 </td>
 <td style="text-align:right;">
--9.41
+-0.21
 </td>
 <td style="text-align:right;">
--17.54
+-11.60
 </td>
 </tr>
 <tr>
@@ -1407,10 +1409,10 @@ Mar 2020
 Apr 2020
 </td>
 <td style="text-align:right;">
--0.35
+1.90
 </td>
 <td style="text-align:right;">
--0.66
+105.20
 </td>
 </tr>
 <tr>
@@ -1418,10 +1420,10 @@ Apr 2020
 May 2020
 </td>
 <td style="text-align:right;">
--5.28
+1.21
 </td>
 <td style="text-align:right;">
--10.08
+66.56
 </td>
 </tr>
 </tbody>
@@ -1457,8 +1459,9 @@ Figure 6.3: Sulphour Dioxide levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:so2compare">6.4</a> shows the most recent mean daily values compared to previous years.</p>
-<pre class="r"><code>plotDT &lt;- so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- so2dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -1645,8 +1648,9 @@ Figure 7.3: Ozone levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:o3compare">7.4</a> shows the most recent mean daily values compared to previous years.</p>
-<pre class="r"><code>plotDT &lt;- o3dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- o3dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -1832,8 +1836,9 @@ Figure 8.3: PM10 levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:pm10compare">8.4</a> shows the most recent mean daily values compared to previous years.</p>
-<pre class="r"><code>plotDT &lt;- pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- pm10dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -2019,8 +2024,9 @@ Figure 9.3: PM2.5 levels, Southampton (hourly, recent)
 </p>
 </div>
 <p>Figure <a href="#fig:pm25compare">9.4</a> shows the most recent mean daily values compared to previous years.</p>
-<pre class="r"><code>plotDT &lt;- pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, .(meanVal = mean(value), 
-    medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, site)]
+<pre class="r"><code>plotDT &lt;- pm25dt[site %like% &quot;via AURN&quot; &amp; fixedDate &lt;= lubridate::today() &amp; fixedDate &gt;= myParams$comparePlotCut, 
+    .(meanVal = mean(value), medianVal = median(value), nSites = uniqueN(site)), keyby = .(fixedDate, compareYear, 
+        site)]
 
 # final plot - adds annotations
 yMin &lt;- min(plotDT$mean)
@@ -3598,8 +3604,8 @@ Sum
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>dailyNO2DT &lt;- no2dt[obsDate &gt;= as.Date(&quot;2020-04-01&quot;), .(meanNO2 = mean(value), maxNO2 = max(value), nObs = .N), keyby = .(site, 
-    rDate = obsDate)]
+<pre class="r"><code>dailyNO2DT &lt;- no2dt[obsDate &gt;= as.Date(&quot;2020-04-01&quot;), .(meanNO2 = mean(value), maxNO2 = max(value), nObs = .N), 
+    keyby = .(site, rDate = obsDate)]
 dailyPM10DT &lt;- pm10dt[obsDate &gt;= as.Date(&quot;2020-04-01&quot;), .(meanPM10 = mean(value), maxPM10 = max(value), nObs = .N), 
     keyby = .(site, rDate = obsDate)]
 # summary(dailyNO2DT$rDate)
@@ -3609,8 +3615,8 @@ windSpeedDT &lt;- fixedDT[pollutant == &quot;ws&quot;, .(site, dateTimeUTC, ws =
 setkey(windDirDT, site, dateTimeUTC)
 setkey(windSpeedDT, site, dateTimeUTC)
 windDT &lt;- windSpeedDT[windDirDT]
-dailyWindDT &lt;- windDT[dateTimeUTC &gt;= as.Date(&quot;2020-04-01&quot;), .(meanWd = mean(wd), meanWs = mean(ws), nObs = .N), keyby = .(site, 
-    rDate = as.Date(dateTimeUTC))]
+dailyWindDT &lt;- windDT[dateTimeUTC &gt;= as.Date(&quot;2020-04-01&quot;), .(meanWd = mean(wd), meanWs = mean(ws), nObs = .N), 
+    keyby = .(site, rDate = as.Date(dateTimeUTC))]
 
 
 setkey(shipsDailyDT, rDate)
@@ -3659,7 +3665,8 @@ Figure 13.8: Box plots of daily max NO2 by maximum cruise ship counts
 </div>
 <p>Figures <a href="#fig:meanNo2BoxPlotsAll">13.9</a> and <a href="#fig:maxNo2BoxPlotsAll">13.10</a> repeats this for all ships. In this case there appears to be slightly more of a rising trend as the number of ships increases.</p>
 <pre class="r"><code>ggplot2::ggplot(plotNO2DT, aes(x = allShipsCoded, y = meanNO2, group = allShipsCoded, color = site)) + geom_boxplot() + 
-    labs(x = &quot;Max number of ships&quot;, y = &quot;Mean daily NO2 (hourly observations)&quot;, caption = myCap) + facet_grid(. ~ site)</code></pre>
+    labs(x = &quot;Max number of ships&quot;, y = &quot;Mean daily NO2 (hourly observations)&quot;, caption = myCap) + facet_grid(. ~ 
+    site)</code></pre>
 <div class="figure"><span id="fig:meanNo2BoxPlotsAll"></span>
 <img src="sccAirQualExplore_covidLockdown2020_files/figure-html/meanNo2BoxPlotsAll-1.png" alt="Box plots of daily mean NO2 by cargo + cruise ship counts" width="672" />
 <p class="caption">
@@ -4188,7 +4195,7 @@ Figure 13.34: timeVariation plots for PM2.5 at Southampton Centre comparing lock
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 150.053 seconds ( 2.5 minutes).</p>
+<p>Analysis completed in 150.12 seconds ( 2.5 minutes).</p>
 <p>R packages used in this report:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>

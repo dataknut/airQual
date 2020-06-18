@@ -493,7 +493,7 @@ Figure \@ref(fig:theilSenSO2) shows the SO2 trend over time. Is lockdown below t
 ```{r theilSenSO2, fig.cap="Theil-Sen trend (SO2)"}
 so2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
-oaSO2 <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
+oaSO2 <- openair::TheilSen(so2dt[date < as.Date("2020-06-01")], "value", 
                   ylab = "SO2", deseason = TRUE,
                   xlab = "Year",
                   date.format = "%Y",
