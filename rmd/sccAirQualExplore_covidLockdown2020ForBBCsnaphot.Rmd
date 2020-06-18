@@ -1,0 +1,651 @@
+---
+params:
+  title: ''
+  subtitle: ''
+  authors: ''
+title: '`r params$title`'
+subtitle: '`r params$subtitle`'
+author: '`r params$authors`'
+date: 'Last run at: `r getRunDateTime()`'
+output:
+  bookdown::html_document2:
+    fig_caption: yes
+    code_folding: hide
+    self_contained: FALSE # set to false if you want plots seperately for easy import to word https://bookdown.org/yihui/rmarkdown/html-document.html#document-dependencies
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: TRUE
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    fig_width: 5
+always_allow_html: yes
+bibliography: '`r path.expand("~/bibliography.bib")`'
+---
+
+```{r knitrSetUp, include=FALSE}
+
+# Set knitr options
+knitr::opts_chunk$set(echo = TRUE,          # echo code so reader can see what is happening; hide using yaml
+                      warning = FALSE,
+                      message = FALSE,
+                      fig_caption = TRUE,
+                      fig_height = 6,        # default, make it bigger to stretch vertical axis
+                      fig_width = 8,
+                      fig_width = 8,         # full width
+                      tidy = TRUE)           # tidy up code in case echo = TRUE
+
+```
+
+
+```{r codeSetup, include=FALSE}
+
+# Load Packages ----
+rmdLibs <- c("airQual",
+             "ggplot2",
+            "kableExtra",
+            "openair", # for fancy air qual stuff
+            "skimr",
+            "viridis")
+library(dkUtils)
+dkUtils::loadLibraries(rmdLibs)
+
+# Log compile time:
+myParams$startTime <- proc.time()
+
+# Parameters ----
+# set xlim for plotly to reduce plot size & load speed
+myParams$xlimMinDateTime <- lubridate::as_datetime("2018-01-01 00:00:00")
+myParams$xlimMaxDateTime <- lubridate::as_datetime("2020-06-01 00:00:00")
+myParams$xlimMinDate <- lubridate::as_date("2018-01-01")
+myParams$xlimMaxDate <- lubridate::as_date("2020-06-01")
+
+myParams$oneYearAgo <- lubridate::as_datetime(now() - (365*24*60*60))
+
+# set values for annotations
+myParams$lockDownStartDate <- as.Date("2020-03-24")
+myParams$lockDownStartDateTime <- lubridate::as_datetime("2020-03-24 00:00:00")
+myParams$lockDownEndDate <- lubridate::today()
+myParams$lockDownEndDateTime <- lubridate::now()
+
+myParams$recentCutDate <- as.Date("2020-03-01")
+
+myParams$comparePlotCutDate <- as.Date("2020-02-01")
+
+myParams$gamCap <- "Trend line = Generalized additive model (gam) with integrated smoothness estimation"
+myParams$lockdownCap <- "\nColoured rectangle = UK covid lockdown to date"
+myParams$weekendCap <- "\nShaded rectangle = weekends & public holidays"
+myParams$noThresh <- "\nNo specified WHO threshold"
+
+myParams$myAlpha <- 0.1
+myParams$vLineAlpha <- 0.4
+myParams$vLineCol <- "red" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+myParams$myTextSize <- 4
+
+# Functions ----
+# these may be useful elsewhere but...
+makeDailyComparisonDT <- function(dt){
+  baseDT <- dt[compareYear == "2017-2019", 
+                .(baseMean = mean(value),
+                  baseMedian = median(value)
+                  ), 
+                keyby = list(fixedDate, fixedDoW, compareYear)
+                ]
+
+testDT <- dt[compareYear == "2020", 
+                .(testMean = mean(value),
+                  testMedian = median(value)
+                  ), 
+                keyby = list(fixedDate, fixedDoW, compareYear, site)
+                ]
+
+setkey(baseDT, fixedDate, fixedDoW)
+setkey(baseDT, fixedDate, fixedDoW)
+
+plotDT <- baseDT[testDT] # auto drops non matches to 2020
+plotDT[, pcDiffMean := 100*(testMean - baseMean)/baseMean] # -ve value indicates lower
+  plotDT[, pcDiffMedian:= 100*(testMedian - baseMedian)/baseMedian] # -ve value indicates lower
+  plotDT[, pos := ifelse(pcDiffMean > 0 , "Pos", "Neg")] # want to colour the line sections - how?
+  # final plot - adds annotations
+return(plotDT)
+}
+
+makeWeeklyComparisonDT <- function(dt){
+  baseDT <- dt[compareYear == "2017-2019", 
+               .(baseMean = mean(value),
+                 baseMedian = median(value)
+               ), 
+               keyby = list(weekNo, compareYear)
+               ]
+  
+  testDT <- dt[compareYear == "2020", 
+               .(testMean = mean(value),
+                 testMedian = median(value)
+               ), 
+               keyby = list(weekNo, compareYear, site)
+               ]
+  
+  setkey(baseDT, weekNo)
+  setkey(baseDT, weekNo)
+  
+  plotDT <- baseDT[testDT] # auto drops non matches to 2020
+  plotDT[, pcDiffMean := 100*(testMean - baseMean)/baseMean] # -ve value indicates lower
+  plotDT[, pcDiffMedian:= 100*(testMedian - baseMedian)/baseMedian] # -ve value indicates lower
+  plotDT[, pos := ifelse(pcDiffMean > 0 , "Pos", "Neg")] # want to colour the line sections - how?
+  # final plot - adds annotations
+  return(plotDT)
+}
+
+
+# why do these only work here?
+addWeekendsDate <- function(p, yMin, yMax){
+  p <- p + annotate("rect", xmin = as.Date("2020-03-07"),
+                    xmax = as.Date("2020-03-09"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-03-14"),
+             xmax = as.Date("2020-03-16"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-03-21"),
+             xmax = as.Date("2020-03-23"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-03-28"),
+             xmax = as.Date("2020-03-30"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-04-04"),
+             xmax = as.Date("2020-04-06"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-04-10"),
+             xmax = as.Date("2020-04-14"), # Easter
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("text", x = as.Date("2020-04-10"),
+             y = yMax*myParams$labelPos,
+             label = "Easter 2020") + # Easter
+    annotate("rect", xmin = as.Date("2020-04-18"),
+             xmax = as.Date("2020-04-20"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-04-25"),
+             xmax = as.Date("2020-04-27"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-05-02"),
+             xmax = as.Date("2020-05-04"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-05-08"),
+             xmax = as.Date("2020-05-11"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("text", x = as.Date("2020-05-08"),
+             y = yMax*myParams$labelPos,
+             label = "VE Day 2020") + # VE Day
+    annotate("rect", xmin = as.Date("2020-05-16"),
+             xmax = as.Date("2020-05-18"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-05-23"),
+             xmax = as.Date("2020-05-25"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = as.Date("2020-05-30"),
+             xmax = as.Date("2020-06-01"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill)
+  return(p)
+}
+
+addWeekendsDateTime <- function(p, yMin, yMax){
+  p <- p + annotate("rect", xmin = lubridate::as_datetime("2020-03-07 00:00:00"),
+                    xmax = lubridate::as_datetime("2020-03-08 23:59:59"),
+                    ymin = yMin, ymax = yMax,
+                    alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-03-14 00:00:00"),
+             xmax = lubridate::as_datetime("2020-03-15 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-03-21 00:00:00"),
+             xmax = lubridate::as_datetime("2020-03-22 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-03-28 00:00:00"),
+             xmax = lubridate::as_datetime("2020-03-29 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-04-04 00:00:00"),
+             xmax = lubridate::as_datetime("2020-04-05 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-04-10 00:00:00"),
+             xmax = lubridate::as_datetime("2020-04-13 23:59:59"), # Easter
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("text", x = lubridate::as_datetime("2020-04-10 00:00:00"),
+             y = yMax*myParams$labelPos,
+             label = "Easter") + # Easter
+    annotate("rect", xmin = lubridate::as_datetime("2020-04-18 00:00:00"),
+             xmax = lubridate::as_datetime("2020-04-19 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-04-25 00:00:00"),
+             xmax = lubridate::as_datetime("2020-04-26 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-05-02 00:00:00"),
+             xmax = lubridate::as_datetime("2020-05-03 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-05-08 00:00:00"),
+             xmax = lubridate::as_datetime("2020-05-10 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("text", x = lubridate::as_datetime("2020-05-08 00:00:00"),
+             y = yMax*myParams$labelPos,
+             label = "VE Day") + # VE Day
+    annotate("rect", xmin = lubridate::as_datetime("2020-05-16 00:00:00"),
+             xmax = lubridate::as_datetime("2020-05-17 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-05-23 00:00:00"),
+             xmax = lubridate::as_datetime("2020-05-24 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill) +
+    annotate("rect", xmin = lubridate::as_datetime("2020-05-30 00:00:00"),
+             xmax = lubridate::as_datetime("2020-05-31 23:59:59"),
+             ymin = yMin, ymax = yMax,
+             alpha = myParams$weAlpha, fill = myParams$weFill)
+  return(p)
+}
+
+addLockdownRectDateTime <- function(p, yMin, yMax){
+  # assumes p has x = obsDateTime
+  # p <- p + annotate("text", x = myParams$lockDownStartDateTime, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDateTime,
+                    xmax = myParams$lockDownEndDateTime, 
+                    ymin = yMin-1, ymax = yMax+1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol) 
+  
+  return(p)
+}
+
+addLockdownRectDate <- function(p, yMin, yMax){
+  # assumes p has x = obsDate
+  # p <- p + annotate("text", x = myParams$lockDownStartDate, 
+  #            y = yMax * 0.4, angle = 10,size = myParams$myTextSize,
+  #            label = "UK covid lockdown to date", hjust = 0.5)
+  p <- p + annotate("rect", xmin = myParams$lockDownStartDate,
+                    xmax = myParams$lockDownEndDate, 
+                    ymin = yMin-1, ymax = yMax+1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol)
+  return(p)
+}
+
+addLockdownRectWeek <- function(p, yMin, yMax){
+  p <- p + annotate("rect", 
+                    xmin = (lubridate::week(myParams$lockDownStartDate) - 0.1),
+                    xmax = (lubridate::week(myParams$lockDownEndDate) + 0.1), 
+                    ymin = yMin - 1, ymax = yMax + 1, 
+                    alpha = myParams$myAlpha, 
+                    fill = myParams$vLineCol, 
+                    colour = myParams$vLineCol)
+  return(p)
+}
+
+# only makes sense to use these for x axis covering March onwards
+myParams$weAlpha <- 0.3
+myParams$weFill <- "grey50"
+myParams$labelPos <- 0.9
+
+
+
+```
+
+
+# Introduction
+
+This report describes exploratory analysis of changes in air quality in the City of Southampton, UK in Spring 2020.
+
+```{r prepData}
+lastHA <- max(fixedDT[source == "hantsAir"]$dateTimeUTC)
+diffHA <- lubridate::now() - lastHA
+lastAURN <- max(fixedDT[source == "AURN"]$dateTimeUTC)
+diffAURN <- lubridate::now() - lastAURN
+```
+
+Data for Southampton downloaded from :
+
+ * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton (see also https://www.southampton.gov.uk/environmental-issues/pollution/air-quality/);
+ * https://uk-air.defra.gov.uk/networks/network-info?view=aurn
+ 
+Southampton City Council collects various forms of air quality data at the sites shown in Table \@ref(tab:showSites). The data is available in raw form from http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton&bulletin=daily&site=SH5.
+
+Some of these sites feed data to [AURN](https://uk-air.defra.gov.uk/networks/network-info?view=aurn). The data that goes via AURN is [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf) to check for outliers and instrument/measurement error. AURN data less than six months old has not undergone this process. AURN data is (c) Crown 2020 copyright Defra and available for re-use via https://uk-air.defra.gov.uk, licenced under the [Open Government Licence](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) (OGL).
+
+# Data
+
+In this report we use data from the following sources:
+
+ * http://www.hantsair.org.uk/hampshire/asp/Bulletin.asp?la=Southampton last updated at `r lastHA`;
+ * https://uk-air.defra.gov.uk/networks/network-info?view=aurn last updated at `r lastAURN`.
+
+Table \@ref(tab:showSites) shows the available sites and sources. Note that some of the non-AURN sites appear to have stopped updating recently. For a detailed analysis of recent missing data see Section \@ref(annexMissing).
+
+```{r showSites}
+t <- fixedDT[!is.na(value),.(nObs = .N, firstData = min(dateTimeUTC), latestData = max(dateTimeUTC),
+           nMeasures = uniqueN(pollutant)), keyby = .(site, source)]
+
+kableExtra::kable(t, caption = "Sites, data source and number of valid observations. note that measures includes wind speed and direction in the AURN sourced data",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+Table \@ref(tab:showPollutants) shows the poillutants recorded at each site.
+
+```{r showPollutants}
+t <- with(fixedDT[!is.na(value)], table(pollutant, site))
+
+kableExtra::kable(t, caption = "Sites, pollutant and number of valid observations",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+To avoid confusion and 'double counting', in the remainder of the analysis we replace the Southampton AURN site data with the data for the same site sourced via AURN as shown in Table \@ref(tab:selectFinalSites). This has the disadvantage that the data is slightly less up to date (see Table \@ref(tab:showSites)). As will be explained below in the comparative analysis we will use only the AURN data to avoid missing data issues.
+
+```{r selectFinalSites}
+fixedDT <- fixedDT[!(site %like% "AURN site")]
+
+t <- fixedDT[!is.na(value),.(nObs = .N,
+           nPollutants = uniqueN(pollutant),
+           lastDate = max(dateTimeUTC)), keyby = .(site, source)]
+
+kableExtra::kable(t, caption = "Sites, data source and number of valid observations",
+                  digits = 2) %>%
+  kable_styling()
+```
+
+We use this data to compare:
+
+ * pre and during-lockdown air quality measures
+ * air quality measures during lockdown 2020 with average measures for the same time periods in the preceding 3 years (2017-2019)
+
+It should be noted that air pollution levels in any given period of time are highly dependent on the prevailing meteorological conditions. As a result it can be very difficult to disentangle the affects of a reduction in source strength from the affects of local surface conditions. This is abundantly clear in the analysis which follows given that the Easter weekend was forecast to have [very high import of pollution from Europe](https://airqualitynews.com/2020/04/07/people-at-risk-from-coronavirus-warned-with-very-high-air-pollution-episode-predicted-for-uk/) and that the wind direction and speed was highly variable across the lockdown period (see Figure \@ref(fig:recentWind)).
+
+Further, air quality is not wholly driven by sources that lockdown might suppress and indeed that suppression may lead to rebound affects. For example we might expect more emissions due to increased domestic heating during cooler lockdown periods. As a result the analysis presented below must be considered a preliminary ‘before meteorological adjustment’ and ‘before controlling for other sources’ analysis of the affect of lockdown on air quality in Southampton.
+
+
+For much more detailed analysis see a longer and very messy [data report](https://dataknut.github.io/airQual/sccAirQualExplore_Exploring%20the%20SSC%20and%20AURN%20data.html).
+
+# WHO air quality thresholds
+
+A number of the following plots show the relevant WHO air quality thresholds and limits. These are taken from:
+
+ * https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health
+
+# Nitrogen Dioxide (no2)
+
+
+```{r No2Summary}
+yLab <- "Nitrogen Dioxide (ug/m3)"
+no2dt <- fixedDT[pollutant == "no2"]
+```
+
+Figure \@ref(fig:theilSenNO2) shows the NO2 trend over time. Is lockdown below trend?
+
+```{r theilSenNO2, fig.cap="Theil-Sen trend (NO2)"}
+no2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaNO2 <- openair::TheilSen(no2dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "NO2", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+p <- oaNO2$plot
+
+getModelTrendTable <- function(oa, fname){
+  # oa is an openAir object created by theilSen
+  # calculates the % below trend using the theil sen slope line parameters
+  # oa <- oaGWh
+  oaData <- as.data.table(oa$data$main.data)
+  rDT <- oaData[, .(date, conc, a,b,slope)]
+  # https://github.com/davidcarslaw/openair/blob/master/R/TheilSen.R#L192
+  # and
+  # https://github.com/davidcarslaw/openair/blob/master/R/TheilSen.R#L625
+  rDT[, x := time_length(date - as.Date("1970-01-01"), unit="days")] # n days since x = 0
+  rDT[, expectedVal := a + (b * x)] # b = slope / 365
+  
+  # checks
+  p <- ggplot2::ggplot(rDT, aes(x = date)) + 
+    geom_line(aes(y = conc)) +
+    labs(y = "Value",
+         caption = fname)
+  p <- p + geom_line(aes(y = expectedVal), linetype = "dashed")
+  ggplot2::ggsave(here::here("docs", "plots", paste0("SSC_trendModelTestPlot_", fname, ".png")))
+  rDT[, diff := conc - expectedVal]
+  rDT[, pcDiff := (diff/expectedVal)*100]
+  
+  t <- rDT[,.(date, conc, a,b,slope,expectedVal, diff, pcDiff)]
+  return(t)
+}
+
+t <- getModelTrendTable(oaNO2, fname = "NO2")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")], 
+            date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+# Oxides of Nitrogen (nox)
+
+```{r NoxSummary}
+yLab <- "Oxides of Nitrogen (ug/m3)"
+noxdt <- fixedDT[pollutant == "nox"]
+```
+
+Figure \@ref(fig:theilSenNOx) shows the NOx trend over time. Is lockdown below trend?
+
+```{r theilSenNOx, fig.cap="Theil-Sen trend (NOx)"}
+noxdt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaNOx <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "NOx", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+p <- oaNOx$plot
+
+t <- getModelTrendTable(oaNOx, fname = "NOx")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")], date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+# Sulphour Dioxide
+
+```{r So2Summary}
+yLab <- "Sulphour Dioxide (ug/m3)"
+so2dt <- fixedDT[pollutant == "so2"]
+
+```
+
+Figure \@ref(fig:theilSenSO2) shows the SO2 trend over time. Is lockdown below trend?
+
+```{r theilSenSO2, fig.cap="Theil-Sen trend (SO2)"}
+so2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaSO2 <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "SO2", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaSO2, fname = "SO2")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+# Ozone
+
+
+```{r o3Summary}
+yLab <- "Ozone (ug/m3)"
+o3dt <- fixedDT[pollutant == "o3"]
+```
+
+Figure \@ref(fig:theilSenO3) shows the O3 trend over time. Is lockdown below trend?
+
+```{r theilSenO3, fig.cap="Theil-Sen trend (O3)"}
+o3dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaO3 <- openair::TheilSen(o3dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "O3", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaO3, fname = "O3")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+# PM 10
+
+```{r pm10Summary}
+yLab <- "PM 10 (ug/m3)"
+pm10dt <- fixedDT[pollutant == "pm10"]
+
+```
+
+Figure \@ref(fig:theilSenPM10) shows the PM10 trend over time. Is lockdown below trend?
+
+```{r theilSenPM10, fig.cap="Theil-Sen trend (PM10)"}
+pm10dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaPM10 <- openair::TheilSen(pm10dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "PM10", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaPM10, fname = "SPM10")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+# PM 2.5
+
+```{r pm25Summary}
+yLab <- "PM 2.5 (ug/m3)"
+pm25dt <- fixedDT[pollutant == "pm2.5"]
+
+```
+
+Figure \@ref(fig:theilSenPM25) shows the PM10 trend over time. Is lockdown below trend?
+
+```{r theilSenPM25, fig.cap="Theil-Sen trend (PM2.5)"}
+pm25dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
+
+oaPM25 <- openair::TheilSen(pm25dt[date < as.Date("2020-06-01")], "value", 
+                  ylab = "PM2.5", deseason = TRUE,
+                  xlab = "Year",
+                  date.format = "%Y",
+                  date.breaks = 4)
+
+t <- getModelTrendTable(oaPM25, fname = "PM2.5")
+
+ft <- dcast(t[date >= as.Date("2020-01-01") & date < as.Date("2020-06-01")],
+              date ~ ., value.var = c("diff","pcDiff"))
+ft[, date := format.Date(date, format = "%b %Y")]
+kableExtra::kable(ft, caption = "Units and % above/below expected", digits = 2) %>%
+  kable_styling()
+```
+
+
+# About
+
+## Code
+
+Source:
+
+ * https://github.com/dataknut/airQual
+
+History:
+
+ * https://github.com/dataknut/airQual/commits/master
+
+## Comments and feedback
+
+If you wish to comment please open an issue:
+ 
+ * https://github.com/dataknut/airQual/issues
+
+## Citation
+
+If you wish to refer to any of the material from this report please cite as:
+
+ * Anderson, B., (`r format(Sys.time(), format = "%Y")`) `r params$title`: `r params$subtitle` , [Sustainable Energy Research Group](http://www.energy.soton.ac.uk), University of Southampton: Southampton, UK.
+
+Report circulation:
+
+ * Public
+ 
+This work is (c) `r format(Sys.time(), format = "%Y")` the University of Southampton and is part of a collection of [air quality](https://dataknut.github.io/airQual/) data analyses.
+
+
+# Runtime
+
+Report generated using [knitr](https://cran.r-project.org/package=knitr) in [RStudio](http://www.rstudio.com) with `r R.version.string` running on `r R.version$platform` (`r Sys.info()[3]`).
+
+```{r check runtime}
+t <- proc.time() - myParams$startTime
+
+elapsed <- t[[3]]
+```
+
+Analysis completed in `r elapsed` seconds ( `r round(elapsed/60,2)` minutes).
+
+R packages used in this report:
+
+ * data.table - [@data.table]
+ * ggplot2 - [@ggplot2]
+ * here - [@here]
+ * kableExtra - [@kableExtra]
+ * lubridate - [@lubridate]
+ * openAir - [@openair]
+ * skimr - [@skimr]
+ * viridis - [@viridis]
+ 
+# References
+
