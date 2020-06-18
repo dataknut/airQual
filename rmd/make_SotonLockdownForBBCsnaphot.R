@@ -208,7 +208,7 @@ fixDates <- function(dt){
 doReport <- function(rmd, vers){
   rmdFile <- paste0(myParams$projLoc, "/rmd/", rmd, ".Rmd")
   rmarkdown::render(input = rmdFile,
-                    output_format = "html_document2", # pdf fails on RStudio server
+                    #output_format = "html_document2", # pdf fails on RStudio server
                     params = list(title = myParams$title,
                                   subtitle = myParams$subtitle,
                                   authors = myParams$authors),

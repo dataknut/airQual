@@ -15,7 +15,7 @@ We update this [mini-report](sccAirQualExplore_covidLockdown2020.html) on a regu
  * PM10 [plot](sccAirQualExplore_covidLockdown2020.html#fig:pm10recent): as for NO2 but less noticeable the week before lockdown. But also possibly weather effect?
  * PM2.5 [plot](sccAirQualExplore_covidLockdown2020.html#fig:pm25recent): much more obvious lockdown but not pre-lockdown effect. But also possibly weather effect and even maybe a sensor/measurement effect? The AURN data here has not yet been [ratified](https://uk-air.defra.gov.uk/assets/documents/Data_Validation_and_Ratification_Process_Apr_2017.pdf).
 
-[Snapshot 18/6/2020](sccAirQualExplore_covidLockdown2020ForBBCsnapshot.html) of the above analysis for BBC South.
+[Snapshot 18/6/2020](sccAirQualExplore_covidLockdown2020ForBBCsnaphot.html) of the above analysis for BBC South.
 
 [Snapshot 30/4/2020](sccAirQualExplore_covidLockdown2020_DEFRA_30_04_2020.html) of the above analysis, some of which was used in response to a [DEFRA call for evidence](https://uk-air.defra.gov.uk/news?view=259).
 
