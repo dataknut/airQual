@@ -269,7 +269,7 @@ div.tocify {
 <h1 class="title toc-ignore">Air Quality in Southampton (UK)</h1>
 <h3 class="subtitle">Exploring the effect of UK covid 19 lockdown on air quality</h3>
 <h4 class="author">Ben Anderson (<a href="mailto:b.anderson@soton.ac.uk">b.anderson@soton.ac.uk</a> <code>@dataknut</code>)</h4>
-<h4 class="date">Last run at: 2020-06-18 22:14:58 (Europe/London)</h4>
+<h4 class="date">Last run at: 2020-06-18 22:28:33 (Europe/London)</h4>
 
 </div>
 
@@ -936,9 +936,9 @@ oaNO2 &lt;- openair::TheilSen(no2dt[date &lt; as.Date(&quot;2020-06-01&quot;)], 
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenNO2"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenNO2-1.png" alt="Theil-Sen trend (NO2)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenNO2-1.png" alt="Theil-Sen de-seasoned trend (NO2)" width="672" />
 <p class="caption">
-Figure 4.1: Theil-Sen trend (NO2)
+Figure 4.1: Theil-Sen de-seasoned trend (NO2)
 </p>
 </div>
 <pre class="r"><code>p &lt;- oaNO2$plot
@@ -1154,9 +1154,9 @@ oaNOx &lt;- openair::TheilSen(noxdt[date &lt; as.Date(&quot;2020-06-01&quot;)], 
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenNOx"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenNOx-1.png" alt="Theil-Sen trend (NOx)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenNOx-1.png" alt="Theil-Sen de-seasoned trend (NOx)" width="672" />
 <p class="caption">
-Figure 5.1: Theil-Sen trend (NOx)
+Figure 5.1: Theil-Sen de-seasoned trend (NOx)
 </p>
 </div>
 <pre class="r"><code>p &lt;- oaNOx$plot
@@ -1343,9 +1343,9 @@ oaSO2 &lt;- openair::TheilSen(so2dt[date &lt; as.Date(&quot;2020-06-01&quot;)], 
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenSO2"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenSO2-1.png" alt="Theil-Sen trend (SO2)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenSO2-1.png" alt="Theil-Sen de-seasoned trend (SO2)" width="672" />
 <p class="caption">
-Figure 6.1: Theil-Sen trend (SO2)
+Figure 6.1: Theil-Sen de-seasoned trend (SO2)
 </p>
 </div>
 <pre class="r"><code>t &lt;- getModelTrendTable(oaSO2, fname = &quot;SO2&quot;)
@@ -1532,9 +1532,9 @@ oaO3 &lt;- openair::TheilSen(o3dt[date &lt; as.Date(&quot;2020-06-01&quot;)], &q
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenO3"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenO3-1.png" alt="Theil-Sen trend (O3)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenO3-1.png" alt="Theil-Sen de-seasoned trend (O3)" width="672" />
 <p class="caption">
-Figure 7.1: Theil-Sen trend (O3)
+Figure 7.1: Theil-Sen de-seasoned trend (O3)
 </p>
 </div>
 <pre class="r"><code>t &lt;- getModelTrendTable(oaO3, fname = &quot;O3&quot;)
@@ -1720,9 +1720,9 @@ oaPM10 &lt;- openair::TheilSen(pm10dt[date &lt; as.Date(&quot;2020-06-01&quot;)]
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenPM10"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenPM10-1.png" alt="Theil-Sen trend (PM10)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenPM10-1.png" alt="Theil-Sen de-seasoned trend (PM10)" width="672" />
 <p class="caption">
-Figure 8.1: Theil-Sen trend (PM10)
+Figure 8.1: Theil-Sen de-seasoned trend (PM10)
 </p>
 </div>
 <pre class="r"><code>t &lt;- getModelTrendTable(oaPM10, fname = &quot;SPM10&quot;)
@@ -1908,9 +1908,9 @@ oaPM25 &lt;- openair::TheilSen(pm25dt[date &lt; as.Date(&quot;2020-06-01&quot;)]
     date.format = &quot;%Y&quot;, date.breaks = 4)</code></pre>
 <pre><code>## [1] &quot;Taking bootstrap samples. Please wait.&quot;</code></pre>
 <div class="figure"><span id="fig:theilSenPM25"></span>
-<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenPM25-1.png" alt="Theil-Sen trend (PM2.5)" width="672" />
+<img src="sccAirQualExplore_covidLockdown2020_files/figure-html/theilSenPM25-1.png" alt="Theil-Sen de-seasoned trend (PM2.5)" width="672" />
 <p class="caption">
-Figure 9.1: Theil-Sen trend (PM2.5)
+Figure 9.1: Theil-Sen de-seasoned trend (PM2.5)
 </p>
 </div>
 <pre class="r"><code>t &lt;- getModelTrendTable(oaPM25, fname = &quot;PM2.5&quot;)
@@ -4195,7 +4195,7 @@ Figure 13.34: timeVariation plots for PM2.5 at Southampton Centre comparing lock
 <pre class="r"><code>t &lt;- proc.time() - myParams$startTime
 
 elapsed &lt;- t[[3]]</code></pre>
-<p>Analysis completed in 150.12 seconds ( 2.5 minutes).</p>
+<p>Analysis completed in 151.112 seconds ( 2.52 minutes).</p>
 <p>R packages used in this report:</p>
 <ul>
 <li>data.table - <span class="citation">(Dowle et al. 2015)</span></li>

@@ -408,7 +408,7 @@ no2dt <- fixedDT[pollutant == "no2"]
 
 Figure \@ref(fig:theilSenNO2) shows the NO2 trend over time. Is lockdown below trend?
 
-```{r theilSenNO2, fig.cap="Theil-Sen trend (NO2)"}
+```{r theilSenNO2, fig.cap="Theil-Sen de-seasoned trend (NO2)"}
 no2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaNO2 <- openair::TheilSen(no2dt[date < as.Date("2020-06-01")], "value", 
@@ -462,7 +462,7 @@ noxdt <- fixedDT[pollutant == "nox"]
 
 Figure \@ref(fig:theilSenNOx) shows the NOx trend over time. Is lockdown below trend?
 
-```{r theilSenNOx, fig.cap="Theil-Sen trend (NOx)"}
+```{r theilSenNOx, fig.cap="Theil-Sen de-seasoned trend (NOx)"}
 noxdt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaNOx <- openair::TheilSen(noxdt[date < as.Date("2020-06-01")], "value", 
@@ -490,7 +490,7 @@ so2dt <- fixedDT[pollutant == "so2"]
 
 Figure \@ref(fig:theilSenSO2) shows the SO2 trend over time. Is lockdown below trend?
 
-```{r theilSenSO2, fig.cap="Theil-Sen trend (SO2)"}
+```{r theilSenSO2, fig.cap="Theil-Sen de-seasoned trend (SO2)"}
 so2dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaSO2 <- openair::TheilSen(so2dt[date < as.Date("2020-06-01")], "value", 
@@ -518,7 +518,7 @@ o3dt <- fixedDT[pollutant == "o3"]
 
 Figure \@ref(fig:theilSenO3) shows the O3 trend over time. Is lockdown below trend?
 
-```{r theilSenO3, fig.cap="Theil-Sen trend (O3)"}
+```{r theilSenO3, fig.cap="Theil-Sen de-seasoned trend (O3)"}
 o3dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaO3 <- openair::TheilSen(o3dt[date < as.Date("2020-06-01")], "value", 
@@ -546,7 +546,7 @@ pm10dt <- fixedDT[pollutant == "pm10"]
 
 Figure \@ref(fig:theilSenPM10) shows the PM10 trend over time. Is lockdown below trend?
 
-```{r theilSenPM10, fig.cap="Theil-Sen trend (PM10)"}
+```{r theilSenPM10, fig.cap="Theil-Sen de-seasoned trend (PM10)"}
 pm10dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaPM10 <- openair::TheilSen(pm10dt[date < as.Date("2020-06-01")], "value", 
@@ -574,7 +574,7 @@ pm25dt <- fixedDT[pollutant == "pm2.5"]
 
 Figure \@ref(fig:theilSenPM25) shows the PM10 trend over time. Is lockdown below trend?
 
-```{r theilSenPM25, fig.cap="Theil-Sen trend (PM2.5)"}
+```{r theilSenPM25, fig.cap="Theil-Sen de-seasoned trend (PM2.5)"}
 pm25dt[, date := as.Date(dateTimeUTC)]  # set date to date for this one
 
 oaPM25 <- openair::TheilSen(pm25dt[date < as.Date("2020-06-01")], "value", 
